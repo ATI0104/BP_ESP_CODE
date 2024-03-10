@@ -66,7 +66,7 @@ static const u1_t PROGMEM APPKEY[16] = {0xc8, 0x51, 0x5f, 0x79, 0xb4, 0xfc,
                                         0x05, 0xdb, 0x3d, 0x8c};
 void os_getDevKey(u1_t* buf) { memcpy_P(buf, APPKEY, 16); }
 
-static uint8_t mydata[] = "Hello, world! Fuck yeah this crap works!";
+static uint8_t mydata[] = "Hello, world!";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -157,6 +157,10 @@ void onEvent(ev_t ev) {
         Serial.print(F("Received "));
         Serial.print(LMIC.dataLen);
         Serial.println(F(" bytes of payload"));
+        char buf[LMIC.dataLen + 1];
+        memcpy(buf, LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
+        buf[LMIC.dataLen] = 0;
+        Serial.println(buf);
       }
       // Schedule next transmission
       os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL),

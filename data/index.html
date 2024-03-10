@@ -29,7 +29,7 @@
                     document.getElementById('deveui').value = data.deveui;
                     document.getElementById('appeui').value = data.appeui;
                     document.getElementById('appkey').value = data.appkey;
-                    if (data.configured) {
+                    if (strlen(data.appeui)> 0) {
                         document.getElementById('deveui').disabled = true;
                         document.getElementById('appeui').disabled = true;
                         document.getElementById('note').innerHTML = "Device is already configured. You can only change the AppKey. If you want to change the DevEUI or JoinEUI, you need to reset the device by holding down the PRG button for 3s.";
@@ -42,23 +42,31 @@
         }
         getConfiguration();
         function sendConfiguration() {
+            const deveui = document.getElementById('deveui').value;
+            const appeui = document.getElementById('appeui').value;
+            const appkey = document.getElementById('appkey').value;
+            if (deveui.length != 16 || appeui.length != 16 || appkey.length != 32) {
+                alert("Invalid input. Please check the input and try again.");
+                return false;
+            }
             fetch('/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    deveui: document.getElementById('deveui').value,
-                    appeui: document.getElementById('appeui').value,
-                    appkey: document.getElementById('appkey').value
+                    deveui: deveui,
+                    appeui: appeui,
+                    appkey: appkey
                 })
             })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Success:', data);
+                    alert("Configuration updated successfully")
                 })
                 .catch((error) => {
-                    console.error('Error:', error);
+                    console.error('Unable to update configuration.\nError:', error);
                 });
             return false;
         }

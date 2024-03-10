@@ -5,8 +5,8 @@
 void Data::save_data() {
   SPIFFS.begin();
   File file = SPIFFS.open("/data.txt", "w");
-  StaticJsonDocument<384> doc;
 
+  JsonDocument doc;
   doc["devEUI"] = this->devEui;
   doc["joinEUI"] = this->joinEui;
   doc["appkey"] = this->appKey;
@@ -16,7 +16,7 @@ void Data::save_data() {
   doc["scl"] = this->scl;
   doc["mosfet"] = this->mosfet;
   doc["configured"] = this->configured;
-
+  doc.shrinkToFit();
   serializeJson(doc, file);
   file.close();
   SPIFFS.end();
@@ -29,7 +29,8 @@ void Data::load_data() {
     Serial.println("Failed to open file for reading");
     return;
   }
-  StaticJsonDocument<384> doc;
+
+  JsonDocument doc;
 
   DeserializationError error = deserializeJson(doc, file);
 
@@ -49,6 +50,26 @@ void Data::load_data() {
   this->configured = doc["configured"];
   file.close();
   SPIFFS.end();
+  if (this->devEui == nullptr) {
+    this->devEui = new uint8_t[8];
+    uint8_t* p = this->devEui;
+    uint8_t dmac[8] = {0};
+    ESP_ERROR_CHECK(esp_efuse_mac_get_default(dmac));
+    *p++ = dmac[0];
+    *p++ = dmac[1];
+    *p++ = dmac[2];
+    *p++ = 0xff;
+    *p++ = 0xfe;
+    *p++ = dmac[3];
+    *p++ = dmac[4];
+    *p++ = dmac[5];
+    if (dmac[6] != 0) {  // Device has a EUI-64
+      p = this->devEui;
+      for (size_t i = 0; i < 8; i++) {
+        *p++ = dmac[i];
+      }
+    }
+  }
 }
 
 uint8_t* Data::str_to_byte_array(const char* str) {
