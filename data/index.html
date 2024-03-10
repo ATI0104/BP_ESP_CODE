@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Monitor Configuration</title>
+</head>
+
+<body>
+    <h1>PV panel monitor configuration</h1>
+    <form action="/update" method="post">
+        <label for="deveui">DevEUI</label>
+        <input type="text" id="deveui" name="deveui" required>
+        <label for="appkey">JoinEUI</label>
+        <input type="text" id="appeui" name="appeui" required>
+        <label for="appkey">AppKey</label>
+        <input type="text" id="appkey" name="appkey" required>
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        function getConfiguration() {
+            fetch('/config')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('deveui').value = data.deveui;
+                    document.getElementById('appeui').value = data.appeui;
+                    document.getElementById('appkey').value = data.appkey;
+                });
+        }
+        getConfiguration();
+        function sendConfiguration(){
+            fetch('/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    deveui: document.getElementById('deveui').value,
+                    appeui: document.getElementById('appeui').value,
+                    appkey: document.getElementById('appkey').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+
+</html>
