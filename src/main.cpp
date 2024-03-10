@@ -182,14 +182,6 @@ void onEvent(ev_t ev) {
     case EV_LINK_ALIVE:
       Serial.println(F("EV_LINK_ALIVE"));
       break;
-    /*
-    || This event is defined but not used in the code. No
-    || point in wasting codespace on it.
-    ||
-    || case EV_SCAN_FOUND:
-    ||    Serial.println(F("EV_SCAN_FOUND"));
-    ||    break;
-    */
     case EV_TXSTART:
       Serial.println(F("EV_TXSTART"));
       break;
