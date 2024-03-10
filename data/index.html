@@ -9,15 +9,18 @@
 
 <body>
     <h1>PV panel monitor configuration</h1>
-    <form action="/update" method="post">
-        <label for="deveui">DevEUI</label>
+    <form onsubmit="sendConfiguration()" method="post">
+        <span id="note"></span>
+        <label for="deveui">DevEUI(MSB)</label>
         <input type="text" id="deveui" name="deveui" required>
-        <label for="appkey">JoinEUI</label>
+        <label for="appkey">JoinEUI(MSB)</label>
         <input type="text" id="appeui" name="appeui" required>
-        <label for="appkey">AppKey</label>
+        <label for="appkey">AppKey(MSB)</label>
         <input type="text" id="appkey" name="appkey" required>
         <input type="submit" value="Submit">
     </form>
+    <h3>Download Configuration</h3>
+    <button type="button" onclick="generatejson()">Download</button>
     <script>
         function getConfiguration() {
             fetch('/config')
@@ -26,10 +29,19 @@
                     document.getElementById('deveui').value = data.deveui;
                     document.getElementById('appeui').value = data.appeui;
                     document.getElementById('appkey').value = data.appkey;
+                    if (data.configured) {
+                        document.getElementById('deveui').disabled = true;
+                        document.getElementById('appeui').disabled = true;
+                        document.getElementById('note').innerHTML = "Device is already configured. You can only change the AppKey. If you want to change the DevEUI or JoinEUI, you need to reset the device by holding down the PRG button for 3s.";
+                    } else {
+                        if (data.deveui != "" && data.appeui != "" && data.appkey != "") {
+
+                        }
+                    }
                 });
         }
         getConfiguration();
-        function sendConfiguration(){
+        function sendConfiguration() {
             fetch('/update', {
                 method: 'POST',
                 headers: {
@@ -41,13 +53,30 @@
                     appkey: document.getElementById('appkey').value
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            return false;
+        }
+        function generatejson() {
+            fetch('/config')
+                .then(response => response.json())
+                .then(data => {
+                    var json = JSON.stringify(data);
+                    var blob = new Blob([json], { type: "application/json" });
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.download = "config.json";
+                    a.href = url;
+                    a.textContent = "Download config.json";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
         }
     </script>
 </body>

@@ -1,0 +1,11 @@
+{
+    "devEUI": "", 
+    "joinEUI": "",
+    "appkey": "",
+    "ssid": "Solar_Monitor",
+    "pass": "",
+    "sda": 23,
+    "scl": 22,
+    "mosfet": 17,
+    "configured": 0
+}
