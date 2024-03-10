@@ -16,6 +16,8 @@ void Data::save_data() {
   doc["scl"] = this->scl;
   doc["mosfet"] = this->mosfet;
   doc["configured"] = this->configured;
+  doc["report_interval"] = this->report_interval;
+  doc["bypass_pv"] = this->bypass_pv;
   doc.shrinkToFit();
   serializeJson(doc, file);
   file.close();
@@ -48,6 +50,8 @@ void Data::load_data() {
   this->scl = doc["scl"];
   this->mosfet = doc["mosfet"];
   this->configured = doc["configured"];
+  this->report_interval = doc["report_interval"];
+  this->bypass_pv = doc["bypass_pv"];
   file.close();
   SPIFFS.end();
   if (this->devEui == nullptr) {
@@ -122,4 +126,16 @@ void Data::set_appkey(char* appKey) {
   this->appKey = str_to_byte_array(appKey);
 }
 
-void Data::set_configured(uint8_t configured) {}
+uint16_t Data::get_report_interval() { return this->report_interval; }
+
+void Data::set_configured(uint8_t configured) { this->configured = configured; }
+
+uint8_t Data::get_bypass_pv() { return this->bypass_pv > 0 ? 1 : 0; }
+
+void Data::set_report_interval(uint16_t report_interval) {
+  if (report_interval < 60) report_interval = 60;
+  if (report_interval > 86400) report_interval = 86400;
+  this->report_interval = report_interval;
+}
+
+void Data::set_bypass_pv(uint8_t bypass_pv) { this->bypass_pv = bypass_pv; }

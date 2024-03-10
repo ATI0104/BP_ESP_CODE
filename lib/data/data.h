@@ -12,6 +12,8 @@ class Data {
   static uint8_t scl;
   static uint8_t mosfet;
   static uint8_t configured;
+  static uint16_t report_interval;
+  static uint8_t bypass_pv;
   void load_data();
   uint8_t* str_to_byte_array(const char* str);
 
@@ -31,6 +33,10 @@ class Data {
   uint8_t get_scl_pin();
   uint8_t get_mosfet_pin();
   uint8_t get_configured();
+  uint16_t get_report_interval();
+  uint8_t get_bypass_pv();
+  void set_report_interval(uint16_t report_interval);
+  void set_bypass_pv(uint8_t bypass_pv);
   void set_devEui(char* devEui);
   void set_joinEui(char* joinEui);
   void set_appkey(char* appKey);
