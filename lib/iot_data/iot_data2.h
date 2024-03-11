@@ -54,6 +54,7 @@ class iot_data2 {
   void set_joinEui(const char* joinEui);
   void set_appkey(const char* appKey);
   uint8_t* str_to_byte_array(const char* str);
+  String* to_hex_str(uint8_t* data, size_t len);
 };
 
 

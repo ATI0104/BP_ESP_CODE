@@ -8,14 +8,15 @@
 </head>
 
 <body>
+
     <h1>PV panel monitor configuration</h1>
-    <form onsubmit="sendConfiguration()" method="post">
+    <form onsubmit="sendConfiguration(event)" method="post">
         <span id="note"></span>
-        <label for="deveui">DevEUI(MSB)</label>
+        <label for="deveui"><br>DevEUI(MSB)</label>
         <input type="text" id="deveui" name="deveui" required>
-        <label for="appkey">JoinEUI(MSB)</label>
+        <label for="appkey"><br>JoinEUI(MSB)</label>
         <input type="text" id="appeui" name="appeui" required>
-        <label for="appkey">AppKey(MSB)</label>
+        <label for="appkey"><br>AppKey(MSB)</label>
         <input type="text" id="appkey" name="appkey" required>
         <input type="submit" value="Submit">
     </form>
@@ -29,7 +30,7 @@
                     document.getElementById('deveui').value = data.deveui;
                     document.getElementById('appeui').value = data.appeui;
                     document.getElementById('appkey').value = data.appkey;
-                    if (strlen(data.appeui)> 0) {
+                    if (data.appeui.length > 0) {
                         document.getElementById('deveui').disabled = true;
                         document.getElementById('appeui').disabled = true;
                         document.getElementById('note').innerHTML = "Device is already configured. You can only change the AppKey. If you want to change the DevEUI or JoinEUI, you need to reset the device by holding down the PRG button for 3s.";
@@ -41,7 +42,8 @@
                 });
         }
         getConfiguration();
-        function sendConfiguration() {
+        function sendConfiguration(event) {
+            event.preventDefault(); // Prevent the default form submission
             const deveui = document.getElementById('deveui').value;
             const appeui = document.getElementById('appeui').value;
             const appkey = document.getElementById('appkey').value;
@@ -60,13 +62,14 @@
                     appkey: appkey
                 })
             })
-                .then(response => response.json())
                 .then(data => {
                     console.log('Success:', data);
                     alert("Configuration updated successfully")
+                    return false;
                 })
                 .catch((error) => {
                     console.error('Unable to update configuration.\nError:', error);
+                    return false;
                 });
             return false;
         }

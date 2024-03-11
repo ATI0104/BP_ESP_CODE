@@ -118,21 +118,22 @@ void iot_data2::set_bypass_pv(uint8_t bypass_pv) {
 }
 
 void iot_data2::set_devEui(const char* devEui) {
-  if (this->devEui == nullptr) return;
+  if (devEui == nullptr) return;
   if (this->devEui != nullptr) delete[] this->devEui;
   this->devEui = str_to_byte_array(devEui);
   this->save_data();
 }
 
 void iot_data2::set_joinEui(const char* joinEui) {
-  if (this->joinEui == nullptr) return;
+  if (joinEui == nullptr) return;
   if (this->joinEui != nullptr) delete[] this->joinEui;
+  Serial.println("JoinEUI:");
   this->joinEui = str_to_byte_array(joinEui);
   this->save_data();
 }
 
 void iot_data2::set_appkey(const char* appKey) {
-  if (this->appKey == nullptr) return;
+  if (appKey == nullptr) return;
   if (this->appKey != nullptr) delete[] this->appKey;
   this->appKey = str_to_byte_array(appKey);
   this->save_data();
@@ -149,4 +150,13 @@ uint8_t* iot_data2::str_to_byte_array(const char* str) {
     sscanf(&str[i * 2], "%2hhx", &byteArray[i]);
   }
   return byteArray;
+}
+String* iot_data2::to_hex_str(uint8_t* data, size_t len) {
+  String* str = new String();
+  if (data == nullptr) return str;
+  for (size_t i = 0; i < len; i++) {
+    str->concat(String(data[i] < 16 ? "0" : ""));
+    str->concat(String(data[i], HEX));
+  }
+  return str;
 }
