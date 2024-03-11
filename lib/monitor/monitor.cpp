@@ -6,7 +6,7 @@
 #include "iot_data.h"
 ADS1115 ADS(0x48);
 monitor::monitor() {
-  Data d = Data();
+  iot_data d = iot_data();
   this->sda = d.get_sda_pin();
   this->scl = d.get_scl_pin();
   this->buffer_index = 0;
@@ -20,8 +20,8 @@ void monitor::init() {
   ADS.setComparatorThresholdHigh(0x8000);
   ADS.setComparatorThresholdLow(0x0000);
   ADS.setComparatorQueConvert(0);
-  pinMode(2, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(2), this->read_adc, RISING);
+  pinMode(13, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(13), this->read_adc, RISING);
   ADS.setMode(0);
   ADS.readADC(this->buffer_index);
 }
@@ -38,12 +38,13 @@ void monitor::read_adc() {
 }
 
 void monitor::send_to_collector(int16_t* buffer) {
-    collector c = collector();
-    c.get_data_from_adc(buffer);
+  collector c = collector();
+  c.get_data_from_adc(buffer);
 }
 
-collector::collector() { this->multiplier = ADS.toVoltage(1); }
-
+collector::collector() {
+  if (this->multiplier == 0.0) this->multiplier = ADS.toVoltage(1);
+}
 
 void collector::get_data_from_adc(int16_t* buffer) {
   auto tmp = new int16_t[4];
@@ -51,7 +52,7 @@ void collector::get_data_from_adc(int16_t* buffer) {
     tmp[i] = buffer[i];
   }
   if (data.pv_voltage == 0) {
-    data.pv_voltage = (tmp[2] * multiplier)*1000*pv_voltage_divider_ratio;
+    data.pv_voltage = (tmp[2] * multiplier) * 1000 * pv_voltage_divider_ratio;
   } else {
     data.pv_voltage = (data.pv_voltage + tmp[2] * multiplier) / 2;
   }
@@ -67,6 +68,4 @@ void collector::get_data_from_adc(int16_t* buffer) {
   }
 }
 
-send_data_t* collector::get_data() {
-    return &data;
-}
+send_data_t* collector::get_data() { return &data; }

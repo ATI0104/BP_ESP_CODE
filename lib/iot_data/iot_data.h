@@ -1,25 +1,25 @@
 #ifndef __data__
 #define __data__
 #include <Arduino.h>
-class Data {
+class iot_data {
  private:
   static uint8_t* devEui;
   static uint8_t* joinEui;
   static uint8_t* appKey;
-  static char ssid[32];
-  static char password[64];
+  static char* ssid;
+  static char* password;
   static uint8_t sda;
   static uint8_t scl;
   static uint8_t mosfet;
   static uint8_t configured;
-  static uint16_t report_interval;
+  static uint32_t report_interval;
   static uint8_t bypass_pv;
   void load_data();
   uint8_t* str_to_byte_array(const char* str);
 
  public:
   // constructor
-  Data();
+  iot_data();
   // save object to file
   void save_data();
   // getters and setters
@@ -32,10 +32,9 @@ class Data {
   uint8_t get_sda_pin();
   uint8_t get_scl_pin();
   uint8_t get_mosfet_pin();
-  uint8_t get_configured();
   uint16_t get_report_interval();
   uint8_t get_bypass_pv();
-  void set_report_interval(uint16_t report_interval);
+  void set_report_interval(uint32_t report_interval);
   void set_bypass_pv(uint8_t bypass_pv);
   void set_devEui(char* devEui);
   void set_joinEui(char* joinEui);
