@@ -8,7 +8,6 @@
     "scl": 22,
     "mosfet": 17,
     "adc_rdy":13,
-    "configured": 0,
     "report_interval": 60,
     "bypass_pv": 0
 }

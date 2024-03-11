@@ -1,10 +1,9 @@
-#include <ArduinoJson.h>
-#include <SPIFFS.h>
 #include <iot_data2.h>
+iot_data2* iot_data2::instance = nullptr;
 void iot_data2::load_data() {
   SPIFFS.begin();
-  File file = SPIFFS.open("/data.txt", "r");
-  if (!file) {
+  File file = SPIFFS.open("/config.json", "r");
+  if (file < 0) {
     Serial.println("Failed to open file for reading");
     return;
   }
@@ -18,9 +17,9 @@ void iot_data2::load_data() {
     Serial.println(error.c_str());
     return;
   }
-  this->devEui = str_to_byte_array(doc["devEui"]);
-  this->joinEui = str_to_byte_array(doc["joinEui"]);
-  this->appKey = str_to_byte_array(doc["appKey"]);
+  this->devEui = str_to_byte_array(doc["devEUI"]);
+  this->joinEui = str_to_byte_array(doc["joinEUI"]);
+  this->appKey = str_to_byte_array(doc["appkey"]);
   this->ssid = new char[strlen(doc["ssid"]) + 1];
   strcpy(this->ssid, doc["ssid"]);
   Serial.println("SSID:");
@@ -59,7 +58,7 @@ void iot_data2::load_data() {
 
 void iot_data2::save_data() {
   SPIFFS.begin();
-  File file = SPIFFS.open("/data.txt", "w");
+  File file = SPIFFS.open("/config.json", "w");
 
   JsonDocument doc;
   doc["devEUI"] = this->devEui;
@@ -118,21 +117,21 @@ void iot_data2::set_bypass_pv(uint8_t bypass_pv) {
   this->save_data();
 }
 
-void iot_data2::set_devEui(char* devEui) {
+void iot_data2::set_devEui(const char* devEui) {
   if (this->devEui == nullptr) return;
   if (this->devEui != nullptr) delete[] this->devEui;
   this->devEui = str_to_byte_array(devEui);
   this->save_data();
 }
 
-void iot_data2::set_joinEui(char* joinEui) {
+void iot_data2::set_joinEui(const char* joinEui) {
   if (this->joinEui == nullptr) return;
   if (this->joinEui != nullptr) delete[] this->joinEui;
   this->joinEui = str_to_byte_array(joinEui);
   this->save_data();
 }
 
-void iot_data2::set_appkey(char* appKey) {
+void iot_data2::set_appkey(const char* appKey) {
   if (this->appKey == nullptr) return;
   if (this->appKey != nullptr) delete[] this->appKey;
   this->appKey = str_to_byte_array(appKey);
@@ -140,6 +139,7 @@ void iot_data2::set_appkey(char* appKey) {
 }
 
 uint8_t* iot_data2::str_to_byte_array(const char* str) {
+  if (str == nullptr) return nullptr;
   size_t strLen = strlen(str);
   if (strLen % 2 != 0) return nullptr;
   if (strLen == 0) return nullptr;

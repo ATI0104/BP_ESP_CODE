@@ -1,6 +1,8 @@
 #ifndef IOT_DATA2_H
 #define IOT_DATA2_H
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include <SPIFFS.h>
 class iot_data2 {
  private:
   static iot_data2* instance;
@@ -18,7 +20,7 @@ class iot_data2 {
   uint8_t bypass_pv;
   void load_data();
   iot_data2() {
-    if (devEui == nullptr) this->load_data();
+    this->load_data();
   };
   void save_data();
 
@@ -30,6 +32,7 @@ class iot_data2 {
   // Static method to access class instance
   static iot_data2* getInstance() {
     if (instance == nullptr) {
+      Serial.println("Creating instance of iot_data2");
       instance = new iot_data2();
     }
     return instance;
@@ -47,11 +50,11 @@ class iot_data2 {
   uint8_t get_bypass_pv();
   void set_report_interval(uint32_t report_interval);
   void set_bypass_pv(uint8_t bypass_pv);
-  void set_devEui(char* devEui);
-  void set_joinEui(char* joinEui);
-  void set_appkey(char* appKey);
+  void set_devEui(const char* devEui);
+  void set_joinEui(const char* joinEui);
+  void set_appkey(const char* appKey);
   uint8_t* str_to_byte_array(const char* str);
 };
-iot_data2* iot_data2::instance = nullptr;
+
 
 #endif
