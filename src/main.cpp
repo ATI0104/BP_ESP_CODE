@@ -15,6 +15,7 @@
 
 #include "ESPAsyncWebServer.h"
 #include "SSD1306Wire.h"
+#include "lora.h"
 SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL, GEOMETRY_128_64, I2C_TWO);
 iot_data2 *data = nullptr;
 DNSServer *dnsServer = nullptr;
@@ -45,7 +46,7 @@ class CaptiveRequestHandler : public AsyncWebHandler {
       JsonDocument doc;
       doc["deveui"] = data->to_hex_str(data->get_devEui(), 8)->c_str();
       doc["appeui"] = data->to_hex_str(data->get_joinEui(), 8)->c_str();
-      doc["appkey"] = data->to_hex_str(data->get_appkey(), 16)->c_str();
+      doc["appkey"] = data->to_hex_str(data->get_appKey(), 16)->c_str();
       serializeJson(doc, *response);
       request->send(response);
       return;
@@ -92,7 +93,7 @@ class CaptiveRequestHandler : public AsyncWebHandler {
 void setup() {
   Serial.begin(115200);
   data = iot_data2::getInstance();
-  if (data->get_appkey() == NULL) {
+  if (data->get_appKey() == NULL) {
     // Enabling display
     pinMode(OLED_RST, OUTPUT);
     digitalWrite(OLED_RST, HIGH);
@@ -131,4 +132,4 @@ void setup() {
   configured = 1;
 }
 
-void loop() {  }
+void loop() {}

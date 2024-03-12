@@ -1,11 +1,11 @@
 #include "control.h"
 
 #include <Arduino.h>
-#include <iot_data.h>
-//#include <preferences.h>
+#include <iot_data2.h>
+// #include <preferences.h>
 pv_controller::pv_controller() {
-  iot_data data;
-  this->bypass_pin = data.get_mosfet_pin();
+  iot_data2 *data = iot_data2::getInstance();
+  this->bypass_pin = data->get_mosfet_pin();
 }
 
 void pv_controller::init() {

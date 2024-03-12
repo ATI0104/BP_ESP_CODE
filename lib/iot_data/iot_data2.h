@@ -3,6 +3,15 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
+#pragma pack(push, 1)
+struct send_data_t {
+  uint16_t pv_voltage;
+  uint16_t pv_current;
+  uint16_t battery_voltage;
+  uint16_t report_interval;
+  uint8_t bypassed;
+};
+#pragma pack(pop)
 class iot_data2 {
  private:
   static iot_data2* instance;
@@ -19,9 +28,7 @@ class iot_data2 {
   uint32_t report_interval;
   uint8_t bypass_pv;
   void load_data();
-  iot_data2() {
-    this->load_data();
-  };
+  iot_data2() { this->load_data(); };
   void save_data();
 
  public:
@@ -39,7 +46,7 @@ class iot_data2 {
   // getters and setters
   uint8_t* get_devEui();
   uint8_t* get_joinEui();
-  uint8_t* get_appkey();
+  uint8_t* get_appKey();
   char* get_ssid();
   char* get_password();
   uint8_t get_sda_pin();
@@ -55,6 +62,5 @@ class iot_data2 {
   uint8_t* str_to_byte_array(const char* str);
   String* to_hex_str(uint8_t* data, size_t len);
 };
-
 
 #endif

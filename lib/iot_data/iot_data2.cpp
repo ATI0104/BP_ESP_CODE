@@ -83,7 +83,7 @@ uint8_t* iot_data2::get_devEui() { return this->devEui; }
 
 uint8_t* iot_data2::get_joinEui() { return this->joinEui; }
 
-uint8_t* iot_data2::get_appkey() { return this->appKey; }
+uint8_t* iot_data2::get_appKey() { return this->appKey; }
 
 char* iot_data2::get_ssid() { return this->ssid; }
 

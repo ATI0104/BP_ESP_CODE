@@ -1,14 +1,11 @@
-#include "monitor.h"
-
 #include <Arduino.h>
-
+#include "monitor.h"
 #include "ADS1X15.h"
-#include "iot_data.h"
 ADS1115 ADS(0x48);
 monitor::monitor() {
-  iot_data d = iot_data();
-  this->sda = d.get_sda_pin();
-  this->scl = d.get_scl_pin();
+  iot_data2* d = iot_data2::getInstance();
+  this->sda = d->get_sda_pin();
+  this->scl = d->get_scl_pin();
   this->buffer_index = 0;
 }
 
