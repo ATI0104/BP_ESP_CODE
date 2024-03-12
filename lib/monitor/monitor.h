@@ -8,7 +8,8 @@ class monitor {
   static uint8_t scl;
   static int16_t buffer[4];
   static uint8_t buffer_index;
-
+  uint8_t first;
+  uint8_t IOffset;
  public:
   monitor();
   void init();

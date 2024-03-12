@@ -8,20 +8,22 @@
 #include <control.h>
 #include <iot_data2.h>
 #include <monitor.h>
-#define OLED_SCL 15
-#define OLED_SDA 4
-#define OLED_RST 16
 #include <Wire.h>
 
 #include "ESPAsyncWebServer.h"
 #include "SSD1306Wire.h"
 #include "lora.h"
+#define OLED_SCL 15
+#define OLED_SDA 4
+#define OLED_RST 16
+#define LED_PIN 25
 SSD1306Wire display(0x3c, OLED_SDA, OLED_SCL, GEOMETRY_128_64, I2C_TWO);
 iot_data2 *data = nullptr;
 DNSServer *dnsServer = nullptr;
 AsyncWebServer *server = nullptr;
 String www;
 uint8_t configured = 0;
+SemaphoreHandle_t core0SetupDone = NULL;
 class CaptiveRequestHandler : public AsyncWebHandler {
  public:
   CaptiveRequestHandler() {}
@@ -89,19 +91,53 @@ class CaptiveRequestHandler : public AsyncWebHandler {
     }
   }
 };
-
+void reset_config(void *parameter) {
+  SPIFFS.begin();
+  File orginal = SPIFFS.open("/config_org.json", "r");
+  File config = SPIFFS.open("/config.json", "w");
+  if (!orginal || !config) {
+    Serial.println("Error opening files");
+    return;
+  }
+  String org = orginal.readString();
+  config.print(org);
+  config.close();
+  orginal.close();
+  SPIFFS.end();
+  ESP.restart();
+}
+void button_hold() {
+  static time_t last_time = 0;
+  if (last_time == 0) {
+    last_time = millis();
+    return;
+  }
+  if (millis() - last_time > 3000) {
+    // Call reset_config on core 0
+    Serial.println("Resetting config");
+    xTaskCreatePinnedToCore(reset_config, "reset_config", 5000, NULL, 1, NULL,
+                            0);
+  } else {
+    last_time = 0;
+  }
+}
 void setup() {
   Serial.begin(115200);
   data = iot_data2::getInstance();
+  ledcSetup(0, 5000, 8);
+  ledcAttachPin(LED_PIN, 0);
+  ledcWrite(0, 25);
+  pinMode(0, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(0), button_hold, CHANGE);
+  pinMode(OLED_RST, OUTPUT);
+  digitalWrite(OLED_RST, HIGH);
+  display.init();
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(ArialMT_Plain_10);
   if (data->get_appKey() == NULL) {
     // Enabling display
-    pinMode(OLED_RST, OUTPUT);
-    digitalWrite(OLED_RST, HIGH);
     String ssid = data->get_ssid() + String("_") +
                   String(data->to_hex_str(data->get_devEui(), 8)->c_str());
-    display.init();
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.setFont(ArialMT_Plain_10);
     display.drawStringMaxWidth(0, 0, 128, "Device not configured");
     display.drawStringMaxWidth(0, 22, 128, String("Connect to: ") + ssid);
     DNSServer *dnsServer = new DNSServer();
@@ -110,6 +146,8 @@ void setup() {
     server->addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
     server->begin();
     display.display();
+    dnsServer->start(53, "*", WiFi.softAPIP());
+    xTaskCreatePinnedToCore(dnsloop, "dnsloop", 20, NULL, 1, NULL, 0);
     while (WiFi.softAPgetStationNum() == 0) {
       delay(500);
     }
@@ -127,9 +165,47 @@ void setup() {
     display.displayOff();
     display.end();
     WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
     digitalWrite(OLED_RST, LOW);
+    ESP.restart();
   }
-  configured = 1;
+  display.drawStringMaxWidth(0, 0, 128, "Device configured");
+  display.drawStringMaxWidth(
+      0, 11, 128,
+      String("DevEUI: ") + data->to_hex_str(data->get_devEui(), 8)->c_str());
+  display.drawStringMaxWidth(
+      0, 33, 128,
+      String("JoinEUI: ") + data->to_hex_str(data->get_joinEui(), 8)->c_str());
+  display.display();
+  delay(30000);
+  display.clear();
+  display.displayOff();
+  display.end();
+  // INIT monitoring and control on core 0
+  core0SetupDone = xSemaphoreCreateBinary();
+  xTaskCreatePinnedToCore(setup0, "setup0", 5 * configMINIMAL_STACK_SIZE, NULL,
+                          1, NULL, 0);
+  xTaskCreatePinnedToCore(loop0, "loop0", 5 * configMINIMAL_STACK_SIZE, NULL, 1,
+                          NULL, 0);
+  Lora *lora = Lora::getInstance();
+  lora->setup();
 }
-
-void loop() {}
+// Core 1 loop (LoraWAN communication)
+void loop() { os_runloop_once(); }
+// Core 0 setup
+void setup0(void *parameter) {
+  xSemaphoreGive(core0SetupDone);
+  vTaskDelete(NULL);
+}
+// Core 0 loop  (monitoring and control)
+void loop0(void *parameter) {
+  xSemaphoreTake(core0SetupDone, portMAX_DELAY);
+  for (;;) {
+    Serial.println("HelloWorld!");
+    delay(1000);
+  }
+}
+void dnsloop(void *parameter) {
+  for (;;)
+    if (dnsServer) dnsServer->processNextRequest();
+}

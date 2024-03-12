@@ -3,25 +3,23 @@
 #include <Arduino.h>
 #include <iot_data2.h>
 // #include <preferences.h>
-pv_controller::pv_controller() {
-  iot_data2 *data = iot_data2::getInstance();
-  this->bypass_pin = data->get_mosfet_pin();
-}
+pv_controller::pv_controller() {}
 
 void pv_controller::init() {
+  iot_data2 *data = iot_data2::getInstance();
+  this->bypass_pin = data->get_mosfet_pin();
+  this->bypassed = data->get_bypass_pv();
   pinMode(this->bypass_pin, OUTPUT);
-  digitalWrite(this->bypass_pin, LOW);
-  this->bypassed = 0;
+  digitalWrite(this->bypass_pin, this->bypassed);
 }
 
 uint8_t pv_controller::toggle_bypass() {
   if (this->bypassed) {
-    digitalWrite(this->bypass_pin, LOW);
     this->bypassed = 0;
   } else {
-    digitalWrite(this->bypass_pin, HIGH);
     this->bypassed = 1;
   }
+  digitalWrite(this->bypass_pin, this->bypassed);
   return this->bypassed;
 }
 

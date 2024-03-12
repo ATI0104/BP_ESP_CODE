@@ -7,6 +7,8 @@ monitor::monitor() {
   this->sda = d->get_sda_pin();
   this->scl = d->get_scl_pin();
   this->buffer_index = 0;
+  this->first = 1;
+  this->IOffset = 1;
 }
 
 void monitor::init() {
@@ -21,6 +23,9 @@ void monitor::init() {
   attachInterrupt(digitalPinToInterrupt(13), this->read_adc, RISING);
   ADS.setMode(0);
   ADS.readADC(this->buffer_index);
+  while(first == 1){ // Wait for the first reading used for calibration
+    delay(100); 
+  }
 }
 
 void monitor::read_adc() {
@@ -54,7 +59,7 @@ void collector::get_data_from_adc(int16_t* buffer) {
     data.pv_voltage = (data.pv_voltage + tmp[2] * multiplier) / 2;
   }
   if (data.pv_current == 0) {
-    data.pv_current = (tmp[1] - (tmp[0] / 2)) * multiplier;
+    data.pv_current = (tmp[1] - (tmp[0] / 2)) * 1000 * multiplier;
   } else {
     data.pv_current = (data.pv_current + tmp[1] * multiplier) / 2;
   }

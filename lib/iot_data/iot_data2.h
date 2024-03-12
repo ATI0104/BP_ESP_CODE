@@ -5,10 +5,10 @@
 #include <SPIFFS.h>
 #pragma pack(push, 1)
 struct send_data_t {
-  uint16_t pv_voltage;
-  uint16_t pv_current;
-  uint16_t battery_voltage;
-  uint16_t report_interval;
+  double pv_voltage;
+  double pv_current;
+  double battery_voltage;
+  uint32_t report_interval;
   uint8_t bypassed;
 };
 #pragma pack(pop)
