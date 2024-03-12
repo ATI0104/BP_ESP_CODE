@@ -22,8 +22,6 @@ void iot_data2::load_data() {
   this->appKey = str_to_byte_array(doc["appkey"]);
   this->ssid = new char[strlen(doc["ssid"]) + 1];
   strcpy(this->ssid, doc["ssid"]);
-  Serial.println("SSID:");
-  Serial.println(this->ssid);
   this->password = new char[strlen(doc["pass"]) + 1];
   strcpy(this->password, doc["pass"]);
   this->sda = doc["sda"];
@@ -127,7 +125,6 @@ void iot_data2::set_devEui(const char* devEui) {
 void iot_data2::set_joinEui(const char* joinEui) {
   if (joinEui == nullptr) return;
   if (this->joinEui != nullptr) delete[] this->joinEui;
-  Serial.println("JoinEUI:");
   this->joinEui = str_to_byte_array(joinEui);
   this->save_data();
 }

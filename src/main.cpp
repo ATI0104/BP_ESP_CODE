@@ -19,6 +19,7 @@ iot_data2 *data = nullptr;
 DNSServer *dnsServer = nullptr;
 AsyncWebServer *server = nullptr;
 String www;
+uint8_t configured = 0;
 class CaptiveRequestHandler : public AsyncWebHandler {
  public:
   CaptiveRequestHandler() {}
@@ -44,9 +45,6 @@ class CaptiveRequestHandler : public AsyncWebHandler {
       doc["deveui"] = data->to_hex_str(data->get_devEui(), 8)->c_str();
       doc["appeui"] = data->to_hex_str(data->get_joinEui(), 8)->c_str();
       doc["appkey"] = data->to_hex_str(data->get_appkey(), 16)->c_str();
-      Serial.println(data->to_hex_str(data->get_devEui(), 8)->c_str());
-      Serial.println(data->to_hex_str(data->get_joinEui(), 8)->c_str());
-      Serial.println(data->to_hex_str(data->get_appkey(), 16)->c_str());
       serializeJson(doc, *response);
       request->send(response);
       return;
@@ -65,12 +63,10 @@ class CaptiveRequestHandler : public AsyncWebHandler {
   void handleBody(AsyncWebServerRequest *request, uint8_t *d, size_t len,
                   size_t index, size_t total) {
     if (request->url() == "/update") {
-      Serial.println("GOTHERE");
       if (!index) {
         JsonDocument doc;
         deserializeJson(doc, d);
         if (doc["deveui"] != nullptr) {
-          Serial.println("Setting deveui");
           data->set_devEui(doc["deveui"]);
           data->set_joinEui(doc["appeui"]);
           data->set_appkey(doc["appkey"]);
@@ -81,14 +77,9 @@ class CaptiveRequestHandler : public AsyncWebHandler {
         display.setFont(ArialMT_Plain_10);
         display.drawString(0, 0, "Device configured");
         display.drawStringMaxWidth(
-            0, 11, 128, "Display and Wi-Fi will be turned off in 5 minutes.");
+            0, 11, 128, "Display and Wi-Fi will be turned off in 5 minutes. You can download the Devices Configuration.");
         display.display();
-        delay(5 * 60 * 1000);
-        display.clear();
-        display.displayOff();
-        display.end();
-        WiFi.disconnect(true);
-        digitalWrite(OLED_RST, LOW);
+        configured = 1;
         return;
       }
     }
@@ -115,7 +106,25 @@ void setup() {
     server->addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
     server->begin();
     display.display();
+    while (WiFi.softAPgetStationNum() == 0) {
+      delay(500);
+    }
+    display.clear();
+    display.drawStringMaxWidth(0, 0, 128, "Connection established!");
+    display.drawStringMaxWidth(0, 11, 128,
+                               String("To configure device go to: http://") +
+                                   WiFi.softAPIP().toString() + "/");
+    display.display();
+    while (!configured) {
+      delay(500);
+    }
+    delay(5 * 60 * 1000);
+    display.clear();
+    display.displayOff();
+    display.end();
+    WiFi.disconnect(true);
+    digitalWrite(OLED_RST, LOW);
   }
 }
 
-void loop() {}
+void loop() { delay(500); }

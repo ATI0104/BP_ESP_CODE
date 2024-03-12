@@ -32,7 +32,6 @@ class iot_data2 {
   // Static method to access class instance
   static iot_data2* getInstance() {
     if (instance == nullptr) {
-      Serial.println("Creating instance of iot_data2");
       instance = new iot_data2();
     }
     return instance;

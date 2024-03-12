@@ -4,12 +4,6 @@ void Lora::do_send(osjob_t* j) {}
 
 void Lora::on_event(ev_t ev) {}
 
-void Lora::print_hex_2(unsigned v) {
-  v &= 0xff;
-  if (v < 16) Serial.print('0');
-  Serial.print(v, HEX);
-}
-
 u1_t* Lora::MSB_to_LSB(const u1_t* bytes) {
   size_t len = sizeof(bytes);
   static u1_t* lsb = new u1_t[len];

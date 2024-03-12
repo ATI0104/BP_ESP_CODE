@@ -58,8 +58,6 @@ void iot_data::load_data() {
   appKey = str_to_byte_array(doc["appKey"]);
   this->ssid = new char[strlen(doc["ssid"]) + 1];
   strcpy(ssid, doc["ssid"]);
-  Serial.println("SSID:");
-  Serial.println(ssid);
   password = new char[strlen(doc["pass"]) + 1];
   strcpy(password, doc["pass"]);
   sda = doc["sda"];
