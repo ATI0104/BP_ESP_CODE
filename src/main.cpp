@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <DNSServer.h>
+#include <SPI.h>
 #include <SPIFFS.h>
 #include <WiFi.h>
 #include <control.h>
@@ -77,7 +78,9 @@ class CaptiveRequestHandler : public AsyncWebHandler {
         display.setFont(ArialMT_Plain_10);
         display.drawString(0, 0, "Device configured");
         display.drawStringMaxWidth(
-            0, 11, 128, "Display and Wi-Fi will be turned off in 5 minutes. You can download the Devices Configuration.");
+            0, 11, 128,
+            "Display and Wi-Fi will be turned off in 5 minutes. You can "
+            "download the Devices Configuration.");
         display.display();
         configured = 1;
         return;
@@ -87,18 +90,18 @@ class CaptiveRequestHandler : public AsyncWebHandler {
 };
 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(OLED_RST, OUTPUT);
-  digitalWrite(OLED_RST, HIGH);
   Serial.begin(115200);
   data = iot_data2::getInstance();
   if (data->get_appkey() == NULL) {
+    // Enabling display
+    pinMode(OLED_RST, OUTPUT);
+    digitalWrite(OLED_RST, HIGH);
+    String ssid = data->get_ssid() + String("_") +
+                  String(data->to_hex_str(data->get_devEui(), 8)->c_str());
     display.init();
     display.setTextAlignment(TEXT_ALIGN_LEFT);
     display.setFont(ArialMT_Plain_10);
     display.drawStringMaxWidth(0, 0, 128, "Device not configured");
-    String ssid = data->get_ssid() + String("_") +
-                  String(data->to_hex_str(data->get_devEui(), 8)->c_str());
     display.drawStringMaxWidth(0, 22, 128, String("Connect to: ") + ssid);
     DNSServer *dnsServer = new DNSServer();
     AsyncWebServer *server = new AsyncWebServer(80);
@@ -125,6 +128,7 @@ void setup() {
     WiFi.disconnect(true);
     digitalWrite(OLED_RST, LOW);
   }
+  configured = 1;
 }
 
-void loop() { delay(500); }
+void loop() {  }

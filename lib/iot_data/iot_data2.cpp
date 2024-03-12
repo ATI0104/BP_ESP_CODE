@@ -59,9 +59,12 @@ void iot_data2::save_data() {
   File file = SPIFFS.open("/config.json", "w");
 
   JsonDocument doc;
-  doc["devEUI"] = this->devEui;
-  doc["joinEUI"] = this->joinEui;
-  doc["appkey"] = this->appKey;
+  Serial.println("Saving data:");
+  Serial.println(to_hex_str(this->devEui, 8)->c_str());
+
+  doc["devEUI"] = to_hex_str(this->devEui, 8)->c_str();
+  doc["joinEUI"] = to_hex_str(this->joinEui, 8)->c_str();
+  doc["appkey"] = to_hex_str(this->appKey, 16)->c_str();
   doc["ssid"] = this->ssid;
   doc["pass"] = this->password;
   doc["sda"] = this->sda;

@@ -65,6 +65,7 @@
                 .then(data => {
                     console.log('Success:', data);
                     alert("Configuration updated successfully")
+                    getConfiguration();
                     return false;
                 })
                 .catch((error) => {
