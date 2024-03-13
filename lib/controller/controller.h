@@ -9,7 +9,7 @@ class controller {
   static controller *instance;
   iot_data2 *d;
   uint8_t first;
-  struct send_data_t *data;
+  send_data_t *data;
   long double multiplier;
   uint16_t offset;  // Calibration offset for the current sensor
   static const uint16_t pv_voltage_divider_ratio =

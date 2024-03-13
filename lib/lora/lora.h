@@ -7,6 +7,7 @@
 #include <hal/hal.h>
 #include <queue>
 #include "iot_data2.h"
+#include "controller.h"
 extern SemaphoreHandle_t ongoingLoraCommunication;
 class Lora {
  private:
@@ -40,6 +41,10 @@ class Lora {
   static void os_getdevEui(u1_t *buf);
   static void os_getappKey(u1_t *buf);
   static void onEvent(void *pUserData, ev_t ev);
+  void recv_data(recv_data_t *data) {
+    controller *c = controller::get_instance();
+    c->receive_data(data);
+  }
 };
 
 #endif

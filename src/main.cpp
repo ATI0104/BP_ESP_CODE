@@ -25,7 +25,6 @@ DNSServer *dnsServer = nullptr;
 AsyncWebServer *server = nullptr;
 String www;
 uint8_t configured = 0;
-SemaphoreHandle_t core0SetupDone = nullptr;
 SemaphoreHandle_t ongoingLoraCommunication = xSemaphoreCreateBinary();
 
 void os_getDevKey(u1_t *buf) { Lora::os_getappKey(buf); }
@@ -182,6 +181,9 @@ void setup() {
     digitalWrite(OLED_RST, LOW);
     ESP.restart();
   }
+  // INIT monitoring and control on core 0
+  xTaskCreatePinnedToCore(setup0, "setup0", 10 * configMINIMAL_STACK_SIZE, NULL,
+                          2, NULL, 0);
   display.drawStringMaxWidth(0, 0, 128, "Device configured");
   display.drawStringMaxWidth(
       0, 11, 128,
@@ -194,14 +196,7 @@ void setup() {
   display.clear();
   display.displayOff();
   display.end();
-  // INIT monitoring and control on core 0
-  core0SetupDone = xSemaphoreCreateBinary();
-  TaskHandle_t core0;
-  xTaskCreatePinnedToCore(setup0, "setup0", 5 * configMINIMAL_STACK_SIZE, NULL,
-                          2, &core0, 0);
-  xSemaphoreTake(core0SetupDone, portMAX_DELAY);
-  xTaskCreatePinnedToCore(loop0, "loop0", 5 * configMINIMAL_STACK_SIZE, NULL,
-                          10, NULL, 0);
+
   // Init LoraWAN
   Lora *lora = Lora::getInstance();
   lora->setup();
@@ -210,18 +205,13 @@ void setup() {
 // Core 1 loop (LoraWAN communication)
 void loop() { os_runloop_once(); }
 
-// Core 0 setup
+// Core 0 setup and loop control and monitoring
 void setup0(void *parameter) {
   m->init();
   while (!c->ready()) {  // calibrating current sensor
     delay(1000);
   }
   p->init();  // Enabling PV output
-  xSemaphoreGive(core0SetupDone);
-  vTaskDelete(NULL);
-}
-// Core 0 loop  (monitoring and control)
-void loop0(void *parameter) {
   for (;;) {
     c->x_recv_data();
   }

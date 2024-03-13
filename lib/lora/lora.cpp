@@ -42,7 +42,6 @@ void Lora::doSend(osjob_t *j) {
                     sizeof(this->data_queue.front()), 1);
     Serial.println(F("Packet queued"));
   }
-  // Next TX is scheduled after TX_COMPLETE event.
 }
 
 void Lora::os_getjoinEui(u1_t *buf) { memcpy(buf, lora->get_joinEUI(), 8); }
@@ -82,9 +81,9 @@ void Lora::onEvent(void *pUserData, ev_t ev) {
         Serial.println(F("Received "));
         Serial.println(LMIC.dataLen);
         Serial.println(F(" bytes of payload"));
-        char buf[LMIC.dataLen + 1];
-        memcpy(buf, LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
-        // TODO process result
+        recv_data_t *recv = new recv_data_t;
+        memcpy(recv, LMIC.frame + LMIC.dataBeg, sizeof(recv_data_t));
+        instance->recv_data(recv);
       }
       // Release the semaphore
       xSemaphoreGiveFromISR(ongoingLoraCommunication, nullptr);
