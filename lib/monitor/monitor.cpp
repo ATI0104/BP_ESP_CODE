@@ -5,6 +5,7 @@
 ADS1115 ADS(0x48);
 int16_t monitor::buffer[4] = {0};
 uint8_t monitor::buffer_index = 0;
+controller* monitor::c = nullptr;
 monitor::monitor() {
   iot_data2* d = iot_data2::getInstance();
   this->sda = d->get_sda_pin();
@@ -22,12 +23,10 @@ void monitor::init() {
   ADS.setComparatorThresholdLow(0x0000);
   ADS.setComparatorQueConvert(0);
   pinMode(13, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(13), this->read_adc, RISING);
+  attachInterrupt(digitalPinToInterrupt(13), read_adc, RISING);
   ADS.setMode(0);
+  c = controller::get_instance();
   ADS.readADC(this->buffer_index);
-  while (first) {  // Wait for the first reading used for calibration
-    delay(100);
-  }
 }
 
 void monitor::read_adc() {
@@ -36,12 +35,7 @@ void monitor::read_adc() {
   //  request next channel
   if (++buffer_index >= 4) {
     buffer_index = 0;
-    monitor::send_to_collector(buffer);
+    c->get_data_from_adc(buffer);
   }
   ADS.readADC(buffer_index);
-}
-
-void monitor::send_to_collector(int16_t* buffer) {
-  controller* c = controller::get_instance();
-  c->get_data_from_adc(buffer);
 }

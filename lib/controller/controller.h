@@ -25,5 +25,6 @@ class controller {
   void get_data_from_adc(int16_t *buffer);
   send_data_t *get_data();
   void receive_data(recv_data_t *data);
+  uint8_t ready() { return this->first; }
 };
 #endif

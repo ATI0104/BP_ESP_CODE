@@ -5,6 +5,7 @@
 class monitor {
  private:
   static monitor *instance;
+  static controller *c;
   uint8_t sda;
   uint8_t scl;
   static int16_t buffer[4];

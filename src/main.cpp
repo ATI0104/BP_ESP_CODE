@@ -1,5 +1,5 @@
 #include <Arduino.h>
-//Needed for function callbacks from arduino-lmic to work using a class
+// Needed for function callbacks from arduino-lmic to work using a class
 #define os_getDevKey Lora::os_getappKey
 #define os_getArtKey Lora::os_getjoinEui
 #define os_getDevEui Lora::os_getdevEui
@@ -9,13 +9,14 @@
 #include <SPI.h>
 #include <SPIFFS.h>
 #include <WiFi.h>
-#include <control.h>
 #include <iot_data2.h>
 #include <monitor.h>
 #include <Wire.h>
-#include "ESPAsyncWebServer.h"
-#include "SSD1306Wire.h"
-#include "lora.h"
+#include <ESPAsyncWebServer.h>
+#include <SSD1306Wire.h>
+#include <lora.h>
+#include <controller.h>
+#include <pv_controller.h>
 #define OLED_SCL 15
 #define OLED_SDA 4
 #define OLED_RST 16
@@ -202,8 +203,15 @@ void setup() {
 void loop() { os_runloop_once(); }
 // Core 0 setup
 void setup0(void *parameter) {
+  monitor *m = monitor::getInstance();
+  controller *c = controller::get_instance();
+  m->init();
+  while (!c->ready()) {
+    delay(1000);
+  }
+  pv_controller *p = pv_controller::get_instance();
+  p->init();
   xSemaphoreGive(core0SetupDone);
-  // TODO
   vTaskDelete(NULL);
 }
 // Core 0 loop  (monitoring and control)
@@ -216,5 +224,9 @@ void loop0(void *parameter) {
 }
 void dnsloop(void *parameter) {
   for (;;)
-    if (dnsServer) dnsServer->processNextRequest();
+    if (dnsServer)
+      dnsServer->processNextRequest();
+    else
+      break;
+  vTaskDelete(NULL);
 }

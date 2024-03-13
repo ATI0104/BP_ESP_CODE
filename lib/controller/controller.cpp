@@ -1,6 +1,9 @@
 #include "controller.h"
 
-controller* controller::get_instance() { return nullptr; }
+controller* controller::get_instance() {
+  if (!instance) instance = new controller();
+  return instance;
+}
 void controller::get_data_from_adc(int16_t* buffer) {
   if (multiplier == 0.0) multiplier = ADS.toVoltage(1);
   auto tmp = new int16_t[4];
@@ -9,6 +12,7 @@ void controller::get_data_from_adc(int16_t* buffer) {
   }
   if (first) {
     offset = tmp[1] - tmp[0];  // Setting the offset for the current sensor
+    first = 0;
   }
   if (data->pv_voltage == 0.0) {
     data->pv_voltage = (tmp[2] * multiplier) * 1000 * pv_voltage_divider_ratio;
