@@ -1,5 +1,5 @@
 #include "controller.h"
-
+controller* controller::instance = nullptr;
 controller* controller::get_instance() {
   if (!instance) instance = new controller();
   return instance;

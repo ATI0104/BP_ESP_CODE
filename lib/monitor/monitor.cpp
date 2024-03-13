@@ -6,6 +6,7 @@ ADS1115 ADS(0x48);
 int16_t monitor::buffer[4] = {0};
 uint8_t monitor::buffer_index = 0;
 controller* monitor::c = nullptr;
+monitor* monitor::instance = nullptr;
 monitor::monitor() {
   iot_data2* d = iot_data2::getInstance();
   this->sda = d->get_sda_pin();

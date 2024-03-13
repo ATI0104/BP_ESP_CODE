@@ -1,6 +1,7 @@
 #ifndef __lora_h__
 #define __lora_h__
 #include <Arduino.h>
+
 #include <lmic.h>
 #include <SPI.h>
 #include <hal/hal.h>
@@ -16,8 +17,10 @@ class Lora {
   u1_t *DEVEUI;
   u1_t *APPKEY;
   u1_t *MSB_to_LSB(const u1_t *bytes, size_t length);
+  uint32_t report_interval;
   Lora() {}
   void doSend(osjob_t *j);
+
  public:
   // Deleted copy constructor and assignment operator
   Lora(const Lora &) = delete;

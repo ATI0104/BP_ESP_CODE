@@ -16,6 +16,7 @@ void Lora::setup() {
   this->APPEUI = MSB_to_LSB(data->get_joinEui(), 8);
   this->DEVEUI = MSB_to_LSB(data->get_devEui(), 8);
   this->APPKEY = data->get_appKey();
+  this->report_interval = data->get_report_interval();
   const lmic_pinmap *pPinMap = Arduino_LMIC::GetPinmap_ThisBoard();
   os_init_ex(pPinMap);
   LMIC_reset();
@@ -44,9 +45,9 @@ void Lora::doSend(osjob_t *j) {
   // Next TX is scheduled after TX_COMPLETE event.
 }
 
-void Lora::os_getjoinEui(u1_t *buf) { memcpy_P(buf, lora->get_joinEUI(), 8); }
-void Lora::os_getdevEui(u1_t *buf) { memcpy_P(buf, lora->get_devEUI(), 8); }
-void Lora::os_getappKey(u1_t *buf) { memcpy_P(buf, lora->get_appKey(), 16); }
+void Lora::os_getjoinEui(u1_t *buf) { memcpy(buf, lora->get_joinEUI(), 8); }
+void Lora::os_getdevEui(u1_t *buf) { memcpy(buf, lora->get_devEUI(), 8); }
+void Lora::os_getappKey(u1_t *buf) { memcpy(buf, lora->get_appKey(), 16); }
 void Lora::onEvent(void *pUserData, ev_t ev) {
   switch (ev) {
     case EV_SCAN_TIMEOUT:

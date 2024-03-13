@@ -1,8 +1,5 @@
 #include <Arduino.h>
 // Needed for function callbacks from arduino-lmic to work using a class
-#define os_getDevKey Lora::os_getappKey
-#define os_getArtKey Lora::os_getjoinEui
-#define os_getDevEui Lora::os_getdevEui
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <DNSServer.h>
@@ -14,6 +11,7 @@
 #include <Wire.h>
 #include <ESPAsyncWebServer.h>
 #include <SSD1306Wire.h>
+// import Lora class
 #include <lora.h>
 #include <controller.h>
 #include <pv_controller.h>
@@ -29,6 +27,10 @@ String www;
 uint8_t configured = 0;
 SemaphoreHandle_t core0SetupDone = nullptr;
 SemaphoreHandle_t ongoingLoraCommunication = xSemaphoreCreateBinary();
+
+void os_getDevKey(u1_t *buf) { Lora::os_getappKey(buf); }
+void os_getDevEui(u1_t *buf) { Lora::os_getdevEui(buf); }
+void os_getArtEui(u1_t *buf) { Lora::os_getjoinEui(buf); }
 void setup0(void *parameter);
 void loop0(void *parameter);
 void dnsloop(void *parameter);
@@ -129,6 +131,9 @@ void button_hold() {
     last_time = 0;
   }
 }
+monitor *m = monitor::getInstance();
+controller *c = controller::get_instance();
+pv_controller *p = pv_controller::get_instance();
 void setup() {
   Serial.begin(115200);
   data = iot_data2::getInstance();
@@ -191,35 +196,34 @@ void setup() {
   display.end();
   // INIT monitoring and control on core 0
   core0SetupDone = xSemaphoreCreateBinary();
+  TaskHandle_t core0;
   xTaskCreatePinnedToCore(setup0, "setup0", 5 * configMINIMAL_STACK_SIZE, NULL,
-                          2, NULL, 0);
+                          2, &core0, 0);
+  xSemaphoreTake(core0SetupDone, portMAX_DELAY);
   xTaskCreatePinnedToCore(loop0, "loop0", 5 * configMINIMAL_STACK_SIZE, NULL,
                           10, NULL, 0);
   // Init LoraWAN
   Lora *lora = Lora::getInstance();
   lora->setup();
+  lora->send_data(c->get_data());
 }
 // Core 1 loop (LoraWAN communication)
 void loop() { os_runloop_once(); }
+
 // Core 0 setup
 void setup0(void *parameter) {
-  monitor *m = monitor::getInstance();
-  controller *c = controller::get_instance();
   m->init();
-  while (!c->ready()) {
+  while (!c->ready()) {  // calibrating current sensor
     delay(1000);
   }
-  pv_controller *p = pv_controller::get_instance();
-  p->init();
+  p->init();  // Enabling PV output
   xSemaphoreGive(core0SetupDone);
   vTaskDelete(NULL);
 }
 // Core 0 loop  (monitoring and control)
 void loop0(void *parameter) {
-  xSemaphoreTake(core0SetupDone, portMAX_DELAY);
   for (;;) {
-    Serial.println("HelloWorld!");
-    delay(1000);
+    c->x_recv_data();
   }
 }
 void dnsloop(void *parameter) {

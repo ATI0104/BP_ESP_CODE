@@ -14,11 +14,15 @@ class controller {
   uint16_t offset;  // Calibration offset for the current sensor
   static const uint16_t pv_voltage_divider_ratio =
       10;  // TODO: Change this to the actual value
-  controller();
   recv_data_t *recv;
-  void x_recv_data();
+  controller() {
+    data = new send_data_t;
+    recv=nullptr;
+    d = iot_data2::getInstance();
+  }
 
  public:
+  void x_recv_data();
   controller(const controller &) = delete;
   controller &operator=(const controller &) = delete;
   static controller *get_instance();

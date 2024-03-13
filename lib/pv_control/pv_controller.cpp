@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <iot_data2.h>
-
+pv_controller *pv_controller::instance = nullptr;
 void pv_controller::init() {
   iot_data2 *data = iot_data2::getInstance();
   this->bypass_pin = data->get_mosfet_pin();

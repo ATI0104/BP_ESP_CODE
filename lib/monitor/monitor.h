@@ -2,6 +2,7 @@
 #define __monitor_h__
 #include <Arduino.h>
 #include "iot_data2.h"
+#include "controller.h"
 class monitor {
  private:
   static monitor *instance;
@@ -25,7 +26,6 @@ class monitor {
   }
   void init();
   static void read_adc();
-  static void send_to_collector(int16_t *buffer);
 };
 
 #endif

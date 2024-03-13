@@ -6,7 +6,8 @@ class pv_controller {
   static pv_controller *instance;
   uint8_t bypassed;
   uint8_t bypass_pin;
-  pv_controller();
+  pv_controller() {}
+
  public:
   pv_controller(const pv_controller &) = delete;
   pv_controller &operator=(const pv_controller &) = delete;
