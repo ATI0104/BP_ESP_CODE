@@ -3,13 +3,19 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
-#pragma pack(push, 1)
+#pragma pack(push, 1)  // Disables struct padding
 struct send_data_t {
-  double pv_voltage;
-  double pv_current;
-  double battery_voltage;
-  uint32_t report_interval;
-  uint8_t bypassed;
+  double pv_voltage;                  // 8B
+  double pv_current;                  // 8B
+  double battery_voltage;             // 8B
+  uint64_t report_interval_bypassed;  // 8B - MSB- bypass, <[MSB-1],LSB> report
+                                      // interval
+};                                    // 32B total
+struct recv_data_t {
+  uint32_t report_interval;  // 4B
+  uint8_t bypass;            // 1B
+  uint8_t reset;             // 1B
+  uint16_t reserved;         // 2B
 };
 #pragma pack(pop)
 class iot_data2 {

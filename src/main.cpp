@@ -9,7 +9,6 @@
 #include <iot_data2.h>
 #include <monitor.h>
 #include <Wire.h>
-
 #include "ESPAsyncWebServer.h"
 #include "SSD1306Wire.h"
 #include "lora.h"
@@ -23,7 +22,8 @@ DNSServer *dnsServer = nullptr;
 AsyncWebServer *server = nullptr;
 String www;
 uint8_t configured = 0;
-SemaphoreHandle_t core0SetupDone = NULL;
+SemaphoreHandle_t core0SetupDone = nullptr;
+SemaphoreHandle_t ongoingLoraCommunication = xSemaphoreCreateBinary();
 class CaptiveRequestHandler : public AsyncWebHandler {
  public:
   CaptiveRequestHandler() {}
@@ -147,7 +147,7 @@ void setup() {
     server->begin();
     display.display();
     dnsServer->start(53, "*", WiFi.softAPIP());
-    xTaskCreatePinnedToCore(dnsloop, "dnsloop", 20, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(dnsloop, "dnsloop", 20, NULL, 2, NULL, 0);
     while (WiFi.softAPgetStationNum() == 0) {
       delay(500);
     }
@@ -184,9 +184,10 @@ void setup() {
   // INIT monitoring and control on core 0
   core0SetupDone = xSemaphoreCreateBinary();
   xTaskCreatePinnedToCore(setup0, "setup0", 5 * configMINIMAL_STACK_SIZE, NULL,
-                          1, NULL, 0);
-  xTaskCreatePinnedToCore(loop0, "loop0", 5 * configMINIMAL_STACK_SIZE, NULL, 1,
-                          NULL, 0);
+                          2, NULL, 0);
+  xTaskCreatePinnedToCore(loop0, "loop0", 5 * configMINIMAL_STACK_SIZE, NULL,
+                          10, NULL, 0);
+  // Init LoraWAN
   Lora *lora = Lora::getInstance();
   lora->setup();
 }
@@ -195,6 +196,7 @@ void loop() { os_runloop_once(); }
 // Core 0 setup
 void setup0(void *parameter) {
   xSemaphoreGive(core0SetupDone);
+  // TODO
   vTaskDelete(NULL);
 }
 // Core 0 loop  (monitoring and control)
