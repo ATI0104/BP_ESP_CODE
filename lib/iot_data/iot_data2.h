@@ -58,7 +58,7 @@ class iot_data2 {
   uint8_t get_sda_pin();
   uint8_t get_scl_pin();
   uint8_t get_mosfet_pin();
-  uint16_t get_report_interval();
+  uint32_t get_report_interval();
   uint8_t get_bypass_pv();
   void set_report_interval(uint32_t report_interval);
   void set_bypass_pv(uint8_t bypass_pv);

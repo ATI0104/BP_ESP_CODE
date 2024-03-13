@@ -95,7 +95,7 @@ uint8_t iot_data2::get_scl_pin() { return this->scl; }
 
 uint8_t iot_data2::get_mosfet_pin() { return this->mosfet; }
 
-uint16_t iot_data2::get_report_interval() { return this->report_interval; }
+uint32_t iot_data2::get_report_interval() { return this->report_interval; }
 
 uint8_t iot_data2::get_bypass_pv() { return this->bypass_pv; }
 

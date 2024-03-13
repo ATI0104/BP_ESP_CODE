@@ -1,4 +1,8 @@
 #include <Arduino.h>
+//Needed for function callbacks from arduino-lmic to work using a class
+#define os_getDevKey Lora::os_getappKey
+#define os_getArtKey Lora::os_getjoinEui
+#define os_getDevEui Lora::os_getdevEui
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <DNSServer.h>
@@ -24,6 +28,9 @@ String www;
 uint8_t configured = 0;
 SemaphoreHandle_t core0SetupDone = nullptr;
 SemaphoreHandle_t ongoingLoraCommunication = xSemaphoreCreateBinary();
+void setup0(void *parameter);
+void loop0(void *parameter);
+void dnsloop(void *parameter);
 class CaptiveRequestHandler : public AsyncWebHandler {
  public:
   CaptiveRequestHandler() {}

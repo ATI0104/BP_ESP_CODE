@@ -2,8 +2,6 @@
 
 #include <Arduino.h>
 #include <iot_data2.h>
-// #include <preferences.h>
-pv_controller::pv_controller() {}
 
 void pv_controller::init() {
   iot_data2 *data = iot_data2::getInstance();
