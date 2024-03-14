@@ -159,7 +159,8 @@ void setup() {
     server->begin();
     display.display();
     dnsServer->start(53, "*", WiFi.softAPIP());
-    xTaskCreatePinnedToCore(dnsloop, "dnsloop", 20, NULL, 2, NULL, 0);
+    xTaskCreatePinnedToCore(dnsloop, "dnsloop", 10 * configMINIMAL_STACK_SIZE,
+                            NULL, 2, NULL, 0);
     while (WiFi.softAPgetStationNum() == 0) {
       delay(500);
     }
@@ -208,12 +209,15 @@ void loop() { os_runloop_once(); }
 // Core 0 setup and loop control and monitoring
 void setup0(void *parameter) {
   m->init();
+  delay(1000);
+  m->run_once();
   while (!c->ready()) {  // calibrating current sensor
     delay(1000);
   }
   p->init();  // Enabling PV output
   for (;;) {
     c->x_recv_data();
+    m->run_once();
   }
 }
 void dnsloop(void *parameter) {

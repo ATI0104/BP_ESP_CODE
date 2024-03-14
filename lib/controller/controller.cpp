@@ -1,35 +1,52 @@
 #include "controller.h"
+#define a0 1
+#define a1 2
+#define a2 3
+#define a3 0
+#define mv_to_a 26.4
 controller* controller::instance = nullptr;
 controller* controller::get_instance() {
   if (!instance) instance = new controller();
   return instance;
 }
 void controller::get_data_from_adc(int16_t* buffer) {
-  if (multiplier == 0.0) multiplier = ADS.toVoltage(1);
+  if (multiplier == 0.0) multiplier = 0.12500381;  // Converts it to mV
+  Serial.println(String(buffer[a0]) + " " + String(buffer[a1]) + " " +
+                 String(buffer[a2]) + " " + String(buffer[a3]));
+  Serial.println(String(ADS.toVoltage(buffer[a0])) + " " +
+                 String(ADS.toVoltage(buffer[a1])) + " " +
+                 String(ADS.toVoltage(buffer[a2])) + " " +
+                 String(ADS.toVoltage(buffer[a3])));
+  Serial.println(String((float)((float)buffer[a0] * multiplier)) + " " +
+                 String((float)((float)buffer[a1] * multiplier)) + " " +
+                 String((float)((float)buffer[a2] * multiplier)) + " " +
+                 String((float)((float)buffer[a3] * multiplier)));
   auto tmp = new int16_t[4];
   for (int i = 0; i < 4; i++) {
     tmp[i] = buffer[i];
   }
-  if (first) {
-    offset = tmp[1] - tmp[0];  // Setting the offset for the current sensor
-    first = 0;
-  }
   if (data->pv_voltage == 0.0) {
-    data->pv_voltage = (tmp[2] * multiplier) * 1000 * pv_voltage_divider_ratio;
+    data->pv_voltage =
+        (tmp[a2] * multiplier) * (double)pv_voltage_divider_ratio;
   } else {
     auto current_voltage =
-        (tmp[2] * multiplier) * 1000 * pv_voltage_divider_ratio;
-    data->pv_voltage = (data->pv_voltage + current_voltage) / 2;
+        (tmp[a2] * multiplier) * (double)pv_voltage_divider_ratio;
+    data->pv_voltage = (data->pv_voltage + current_voltage) / 2.0;
   }
   if (data->pv_current == 0.0) {
-    data->pv_current = (tmp[1] - (tmp[0] / 2)) * 1000 * multiplier;
+    data->pv_current = (tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a;
   } else {
-    data->pv_current = (data->pv_current + tmp[1] * multiplier) / 2;
+    data->pv_current = (data->pv_current +
+                        ((tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a)) /
+                       2.0;
   }
   if (data->battery_voltage == 0.0) {
-    data->battery_voltage = tmp[3] * multiplier;
+    data->battery_voltage = tmp[a3] * multiplier;
   } else {
-    data->battery_voltage = (data->battery_voltage + tmp[3] * multiplier) / 2;
+    data->battery_voltage = (data->battery_voltage + tmp[a3] * multiplier) / 2.0;
+  }
+  if(first){
+    first=0;
   }
   delete[] tmp;
 }
@@ -44,6 +61,10 @@ send_data_t* controller::get_data() {
   }
   auto tmp = data;
   data = new send_data_t{0};
+  data->battery_voltage = 0.0;
+  data->pv_current = 0.0;
+  data->pv_voltage = 0.0;
+  data->report_interval_bypassed = 0;
   return tmp;
 }
 

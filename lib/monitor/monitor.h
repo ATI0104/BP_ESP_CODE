@@ -13,6 +13,7 @@ class monitor {
   static uint8_t buffer_index;
   uint8_t IOffset;
   uint8_t first;
+  static uint8_t rdy;
   monitor();
 
  public:
@@ -26,6 +27,7 @@ class monitor {
   }
   void init();
   static void read_adc();
+  void run_once();
 };
 
 #endif

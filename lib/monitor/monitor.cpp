@@ -5,6 +5,7 @@
 ADS1115 ADS(0x48);
 int16_t monitor::buffer[4] = {0};
 uint8_t monitor::buffer_index = 0;
+uint8_t monitor::rdy = 0;
 controller* monitor::c = nullptr;
 monitor* monitor::instance = nullptr;
 monitor::monitor() {
@@ -18,8 +19,8 @@ monitor::monitor() {
 void monitor::init() {
   Wire.begin(this->sda, this->scl);
   ADS.begin();
-  ADS.setGain(0);
-  ADS.setDataRate(7);
+  ADS.setGain(1);
+  ADS.setDataRate(0);
   ADS.setComparatorThresholdHigh(0x8000);
   ADS.setComparatorThresholdLow(0x0000);
   ADS.setComparatorQueConvert(0);
@@ -30,13 +31,18 @@ void monitor::init() {
   ADS.readADC(this->buffer_index);
 }
 
-void monitor::read_adc() {
-  //  save the value
-  buffer[buffer_index] = ADS.getValue();
-  //  request next channel
-  if (++buffer_index >= 4) {
-    buffer_index = 0;
-    c->get_data_from_adc(buffer);
+void monitor::read_adc() { rdy = 1; }
+
+void monitor::run_once() {
+  if (rdy) {
+    //  save the value
+    buffer[buffer_index] = ADS.getValue();
+    //  request next channel
+    if (++buffer_index >= 4) {
+      buffer_index = 0;
+      c->get_data_from_adc(buffer);
+    }
+    rdy = 0;
+    ADS.readADC(buffer_index);
   }
-  ADS.readADC(buffer_index);
 }

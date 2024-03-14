@@ -10,14 +10,18 @@ class controller {
   iot_data2 *d;
   uint8_t first;
   send_data_t *data;
-  long double multiplier;
+  float multiplier;
   uint16_t offset;  // Calibration offset for the current sensor
   static const uint16_t pv_voltage_divider_ratio =
       10;  // TODO: Change this to the actual value
   recv_data_t *recv;
   controller() {
     data = new send_data_t;
-    recv=nullptr;
+    data->battery_voltage = 0.0;
+    data->pv_current = 0.0;
+    data->pv_voltage = 0.0;
+    data->report_interval_bypassed = 0;
+    recv = nullptr;
     d = iot_data2::getInstance();
   }
 

@@ -11,7 +11,7 @@
 extern SemaphoreHandle_t ongoingLoraCommunication;
 class Lora {
  private:
-  std::queue<send_data_t *> data_queue;
+  std::queue<uint8_t *> data_queue;
   static Lora *instance;
   static osjob_t sendjob;
   u1_t *APPEUI;
@@ -41,6 +41,7 @@ class Lora {
   static void os_getdevEui(u1_t *buf);
   static void os_getappKey(u1_t *buf);
   static void onEvent(void *pUserData, ev_t ev);
+  static void send_data_clb(osjob_t *j);
   void recv_data(recv_data_t *data) {
     controller *c = controller::get_instance();
     c->receive_data(data);

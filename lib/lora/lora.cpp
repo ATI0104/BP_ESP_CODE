@@ -25,9 +25,12 @@ void Lora::setup() {
 }
 
 void Lora::send_data(const send_data_t *data) {
-  send_data_t *send_data = new send_data_t;
+  uint8_t *send_data = new uint8_t[sizeof(send_data_t)];
   memcpy(send_data, data, sizeof(send_data_t));
   data_queue.push(send_data);
+  Serial.println(String((float)data->pv_voltage) + " " +
+                 String((float)data->pv_current) + " " +
+                 String((float)data->battery_voltage));
   // Seize semaphore
   xSemaphoreTake(ongoingLoraCommunication, portMAX_DELAY);
   this->doSend(&sendjob);
@@ -38,8 +41,7 @@ void Lora::doSend(osjob_t *j) {
     Serial.println(F("OP_TXRXPEND, not sending"));
   } else {
     // Prepare upstream data transmission at the next possible time.
-    LMIC_setTxData2(1, (uint8_t *)this->data_queue.front(),
-                    sizeof(this->data_queue.front()), 1);
+    LMIC_setTxData2(1, this->data_queue.front(), sizeof(send_data_t), 1);
     Serial.println(F("Packet queued"));
   }
 }
@@ -87,6 +89,10 @@ void Lora::onEvent(void *pUserData, ev_t ev) {
       }
       // Release the semaphore
       xSemaphoreGiveFromISR(ongoingLoraCommunication, nullptr);
+      instance->data_queue.pop();
+      os_setTimedCallback(&sendjob,
+                          os_getTime() + sec2osticks(instance->report_interval),
+                          send_data_clb);
       break;
     case EV_LOST_TSYNC:
       Serial.println(F("EV_LOST_TSYNC"));
@@ -120,4 +126,9 @@ void Lora::onEvent(void *pUserData, ev_t ev) {
       Serial.println((unsigned)ev);
       break;
   }
+}
+
+void Lora::send_data_clb(osjob_t *j) {
+  controller *c = controller::get_instance();
+  instance->send_data(c->get_data());
 }
