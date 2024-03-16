@@ -5,12 +5,14 @@
 #include <SPIFFS.h>
 #pragma pack(push, 1)  // Disables struct padding
 struct send_data_t {
-  double pv_voltage;                  // 8B
-  double pv_current;                  // 8B
-  double battery_voltage;             // 8B
-  uint64_t report_interval_bypassed;  // 8B - MSB- bypass, <[MSB-1],LSB> report
-                                      // interval
-};                                    // 32B total
+  double pv_voltage;         // 8B
+  double pv_current;         // 8B
+  double battery_voltage;    // 8B
+  uint8_t bypassed;          // 1B
+  uint32_t report_interval;  // 4B
+  // uint64_t report_interval_bypassed;  // 8B - MSB- bypass, <[MSB-1],LSB>
+  // report interval
+};  // 29B total
 struct recv_data_t {
   uint32_t report_interval;  // 4B
   uint8_t bypass;            // 1B

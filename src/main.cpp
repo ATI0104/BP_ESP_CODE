@@ -183,8 +183,8 @@ void setup() {
     ESP.restart();
   }
   // INIT monitoring and control on core 0
-  xTaskCreatePinnedToCore(setup0, "setup0", 10 * configMINIMAL_STACK_SIZE, NULL,
-                          2, NULL, 0);
+  xTaskCreatePinnedToCore(setup0, "setup0", 10 * configMINIMAL_STACK_SIZE,
+  NULL, 2, NULL, 0);
   display.drawStringMaxWidth(0, 0, 128, "Device configured");
   display.drawStringMaxWidth(
       0, 11, 128,
@@ -193,7 +193,7 @@ void setup() {
       0, 33, 128,
       String("JoinEUI: ") + data->to_hex_str(data->get_joinEui(), 8)->c_str());
   display.display();
-  delay(30000);
+  delay(10000);
   display.clear();
   display.displayOff();
   display.end();
@@ -211,7 +211,7 @@ void setup0(void *parameter) {
   m->init();
   delay(1000);
   m->run_once();
-  while (!c->ready()) {  // calibrating current sensor
+  while (!c->ready()) {
     delay(1000);
   }
   p->init();  // Enabling PV output

@@ -15,13 +15,16 @@ class controller {
   static const uint16_t pv_voltage_divider_ratio =
       10;  // TODO: Change this to the actual value
   recv_data_t *recv;
+  int32_t number_of_measurements;
   controller() {
     data = new send_data_t;
     data->battery_voltage = 0.0;
     data->pv_current = 0.0;
     data->pv_voltage = 0.0;
-    data->report_interval_bypassed = 0;
+    data->report_interval = 0;
+    data->bypassed = 0;
     recv = nullptr;
+    number_of_measurements = 0;
     d = iot_data2::getInstance();
   }
 
