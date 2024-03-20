@@ -10,29 +10,32 @@ controller* controller::get_instance() {
   return instance;
 }
 void controller::get_data_from_adc(int16_t* buffer) {
-  if (multiplier == 0.0) multiplier = 0.12500381;  // Converts it to mV
-  // Serial.println(String(buffer[a0]) + " " + String(buffer[a1]) + " " +
-  //                String(buffer[a2]) + " " + String(buffer[a3]));
-  // Serial.println(String(ADS.toVoltage(buffer[a0])) + " " +
-  //                String(ADS.toVoltage(buffer[a1])) + " " +
-  //                String(ADS.toVoltage(buffer[a2])) + " " +
-  //                String(ADS.toVoltage(buffer[a3])));
-  // Serial.println(String((float)((float)buffer[a0] * multiplier)) + " " +
-  //                String((float)((float)buffer[a1] * multiplier)) + " " +
-  //                String((float)((float)buffer[a2] * multiplier)) + " " +
-  //                String((float)((float)buffer[a3] * multiplier)));
+  if (multiplier == 0.0) multiplier = 0.12500381;
   auto tmp = new int16_t[4];
   for (int i = 0; i < 4; i++) {
     tmp[i] = buffer[i];
   }
-  data->pv_voltage += (tmp[a2] * multiplier) * (double)pv_voltage_divider_ratio;
-  data->pv_current += (tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a;
-  data->battery_voltage += tmp[a3] * multiplier;
-  if (first) {
-    first = 0;
+  if (calibration_steps) {
+    calibration_steps--;
+    number_of_measurements++;
+    average(&offset, &number_of_measurements,
+            (double)(tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a);
+    if (calibration_steps == 0) {
+      number_of_measurements = 0;
+    }
+    return;
   }
+  ++number_of_measurements;
+  average(&data->pv_voltage, &number_of_measurements,
+          (double)tmp[a2] * multiplier * pv_voltage_divider_ratio);
+  average(&data->pv_current, &number_of_measurements,
+          ((double)(tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a) - offset);
+  average(&data->battery_voltage, &number_of_measurements,
+          (double)tmp[a3] * multiplier);
+  // data->pv_voltage += (tmp[a2] * multiplier) *
+  // (double)pv_voltage_divider_ratio; data->pv_current += (tmp[a1] - (tmp[a0] /
+  // 2)) * multiplier * mv_to_a; data->battery_voltage += tmp[a3] * multiplier;
 
-  number_of_measurements++;
   delete[] tmp;
 }
 
@@ -43,11 +46,8 @@ send_data_t* controller::get_data() {
 
   auto tmp = data;
   data = new send_data_t{0};
-  auto tmp2 = (double)this->number_of_measurements;
+  Serial.println(data->bypassed + String(data->pv_current));
   number_of_measurements = 0;
-  tmp->pv_voltage /= tmp2;
-  tmp->pv_current /= tmp2;
-  tmp->battery_voltage /= tmp2;
   data->battery_voltage = 0.0;
   data->pv_current = 0.0;
   data->pv_voltage = 0.0;
@@ -57,6 +57,29 @@ send_data_t* controller::get_data() {
 }
 
 void controller::receive_data(recv_data_t* data) { this->recv = data; }
+/**
+ * @brief Calculates the average of incoming numbers. Source:
+ * https://math.stackexchange.com/questions/106313/regular-average-calculated-accumulatively
+ *
+ * @param avg
+ * @param n
+ * @param x
+ */
+void controller::average(double* avg, size_t* count, double x) {
+  if (!avg || !count) {
+    Serial.println("avg or count is null");
+    return;
+  }
+  if (*count == 0) {
+    Serial.println("division by zero!!!");
+    return;
+  }
+  if (*count == 1) {
+    *avg = 0.0;
+  }
+  *avg += (x - *avg) / *count;
+  return;
+}
 void controller::x_recv_data() {
   if (recv == nullptr) return;
   if (recv->bypass) {
@@ -70,5 +93,6 @@ void controller::x_recv_data() {
   if (recv->reset) {
     ESP.restart();
   }
+  delete recv;
   recv = nullptr;
 }
