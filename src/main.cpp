@@ -26,14 +26,35 @@ AsyncWebServer *server = nullptr;
 String www;
 uint8_t configured = 0;
 SemaphoreHandle_t ongoingLoraCommunication = xSemaphoreCreateBinary();
-
+/**
+ * @brief Function which copies the appKey to the buf variable. Needed because
+ * the LMIC library is not compatible with C++ classes.
+ *
+ * @param buf
+ */
 void os_getDevKey(u1_t *buf) { Lora::os_getappKey(buf); }
+/**
+ * @brief Function which copies the devEui to the buf variable. Needed because
+ * the LMIC library is not compatible with C++ classes.
+ *
+ * @param buf
+ */
 void os_getDevEui(u1_t *buf) { Lora::os_getdevEui(buf); }
+/**
+ * @brief Function which copies the joinEui to the buf variable. Needed because
+ * the LMIC library is not compatible with C++ classes.
+ *
+ * @param buf
+ */
 void os_getArtEui(u1_t *buf) { Lora::os_getjoinEui(buf); }
-void setup0(void *parameter);
-void loop0(void *parameter);
+
+void setup_and_loop_0(void *parameter);
 void dnsloop(void *parameter);
 class CaptiveRequestHandler : public AsyncWebHandler {
+  /**
+   * @brief HTTP request handler for the configuration page
+   *
+   */
  public:
   CaptiveRequestHandler() {}
   virtual ~CaptiveRequestHandler() {}
@@ -100,6 +121,11 @@ class CaptiveRequestHandler : public AsyncWebHandler {
     }
   }
 };
+/**
+ * @brief Resets the configuration to the original configuration
+ *
+ * @param parameter Not used
+ */
 void reset_config(void *parameter) {
   SPIFFS.begin();
   File orginal = SPIFFS.open("/config_org.json", "r");
@@ -115,6 +141,11 @@ void reset_config(void *parameter) {
   SPIFFS.end();
   ESP.restart();
 }
+/**
+ * @brief Checks if a buton is held for more than 3s if it is, it calls
+ * reset_config
+ *
+ */
 void button_hold() {
   static time_t last_time = 0;
   if (last_time == 0) {
@@ -133,6 +164,12 @@ void button_hold() {
 monitor *m = monitor::getInstance();
 controller *c = controller::get_instance();
 pv_controller *p = pv_controller::get_instance();
+/**
+ * @brief Default Arduino setup function. If the device is not configured it
+ * initiates the configuration site and reboots. If the configuration is already
+ * done it displays the
+ *
+ */
 void setup() {
   Serial.begin(115200);
   data = iot_data2::getInstance();
@@ -183,8 +220,8 @@ void setup() {
     ESP.restart();
   }
   // INIT monitoring and control on core 0
-  xTaskCreatePinnedToCore(setup0, "setup0", 10 * configMINIMAL_STACK_SIZE,
-  NULL, 2, NULL, 0);
+  xTaskCreatePinnedToCore(setup_and_loop_0, "setup_and_loop_0",
+                          10 * configMINIMAL_STACK_SIZE, NULL, 2, NULL, 0);
   display.drawStringMaxWidth(0, 0, 128, "Device configured");
   display.drawStringMaxWidth(
       0, 11, 128,
@@ -193,11 +230,13 @@ void setup() {
       0, 33, 128,
       String("JoinEUI: ") + data->to_hex_str(data->get_joinEui(), 8)->c_str());
   display.display();
-  delay(10000);
+  delay(10 * 1000);
   display.clear();
   display.displayOff();
   display.end();
-
+  // Sometimes the first measurements are corrupt this is a workaround which
+  // burns the first measurements
+  c->get_data();
   // Init LoraWAN
   Lora *lora = Lora::getInstance();
   lora->setup();
@@ -207,11 +246,10 @@ void setup() {
 void loop() { os_runloop_once(); }
 
 // Core 0 setup and loop control and monitoring
-void setup0(void *parameter) {
+void setup_and_loop_0(void *parameter) {
   m->init();
-  delay(1000);
-  m->run_once();
   while (!c->ready()) {
+    m->run_once();
     delay(1000);
   }
   p->init();  // Enabling PV output
