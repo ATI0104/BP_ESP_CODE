@@ -12,8 +12,7 @@ class controller {
   send_data_t *data;
   float multiplier;
   double offset;  // Calibration offset for the current sensor
-  static const double pv_voltage_divider_ratio =
-      10.0;  // TODO: Change this to the actual value
+  const double pv_voltage_divider_ratio = 10.0;  // TODO: Change this to the actual value
   recv_data_t *recv;
   size_t number_of_measurements;
   controller() {
