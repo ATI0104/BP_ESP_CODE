@@ -10,8 +10,6 @@ struct send_data_t {
   double battery_voltage;    // 8B
   uint8_t bypassed;          // 1B
   uint32_t report_interval;  // 4B
-  // uint64_t report_interval_bypassed;  // 8B - MSB- bypass, <[MSB-1],LSB>
-  // report interval
 };  // 29B total
 struct recv_data_t {
   uint32_t report_interval;  // 4B
@@ -32,7 +30,6 @@ class iot_data2 {
   uint8_t scl;
   uint8_t mosfet;
   uint8_t adc_rdy;
-
   uint32_t report_interval;
   uint8_t bypass_pv;
   void load_data();
