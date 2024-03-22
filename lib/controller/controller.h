@@ -6,13 +6,15 @@
 extern ADS1115 ADS;
 class controller {
  private:
+  int old_bypass;
   static controller *instance;
   iot_data2 *d;
   uint8_t calibration_steps;
   send_data_t *data;
-  float multiplier;
+  double multiplier;
   double offset;  // Calibration offset for the current sensor
-  const double pv_voltage_divider_ratio = 10.0;  // TODO: Change this to the actual value
+  const double pv_voltage_divider_ratio =
+      10.0;  // TODO: Change this to the actual value
   recv_data_t *recv;
   size_t number_of_measurements;
   controller() {
@@ -26,6 +28,8 @@ class controller {
     recv = nullptr;
     number_of_measurements = 0;
     calibration_steps = 5;
+    multiplier = 0.12500381;
+    old_bypass = 0;
     d = iot_data2::getInstance();
   }
   void average(double *avg, size_t *count, double x);
@@ -40,9 +44,9 @@ class controller {
   void receive_data(recv_data_t *data);
   /**
    * @brief Returns true when the calibration is done
-   * 
-   * @return uint8_t 
+   *
+   * @return uint8_t
    */
-  uint8_t ready() { return !this->calibration_steps; }
+  uint8_t ready() { return this->calibration_steps > 0 ? 1 : 0; }
 };
 #endif

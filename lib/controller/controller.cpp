@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "pv_controller.h"
 #define a0 1
 #define a1 2
 #define a2 3
@@ -10,32 +11,52 @@ controller* controller::get_instance() {
   return instance;
 }
 void controller::get_data_from_adc(int16_t* buffer) {
-  if (multiplier == 0.0) multiplier = 0.12500381;
   auto tmp = new int16_t[4];
   for (int i = 0; i < 4; i++) {
     tmp[i] = buffer[i];
   }
   if (calibration_steps) {
+    Serial.println("Calibrating...");
+    if (old_bypass >
+        1) {  // The Mosfet was disengaded during the calibration we need to
+              // burn some data to prevent the calibration from being off
+      old_bypass--;
+      delete tmp;
+      return;
+    }
+    if (pv_controller::get_instance()->get_bypass_status() == 0) {
+      Serial.println("Panel is not bypassed. Bypassing panel for calibration");
+      old_bypass = 3;
+      pv_controller::get_instance()->toggle_bypass();
+      delete tmp;
+      return;
+    }
     calibration_steps--;
     number_of_measurements++;
     average(&offset, &number_of_measurements,
-            (double)(tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a);
+            (double)(tmp[a1] - (tmp[a0] / 2)));
     if (calibration_steps == 0) {
       number_of_measurements = 0;
+      Serial.println("Calibration done");
+      Serial.println("Offset: " + String(offset));
+      if (old_bypass == 1) {
+        Serial.println("Disabling bypass");
+        pv_controller::get_instance()->toggle_bypass();
+      }
     }
     return;
   }
   ++number_of_measurements;
   average(&data->pv_voltage, &number_of_measurements,
           (double)tmp[a2] * multiplier * pv_voltage_divider_ratio);
+  // Current: (Cout - 3.3v/2- cal_offset) * bit_to_mV * mv_to_A * 1000 = mA
   average(&data->pv_current, &number_of_measurements,
-          ((double)(tmp[a1] - (tmp[a0] / 2)) * multiplier * mv_to_a) - offset);
+          ((double)(tmp[a1] - (tmp[a0] / 2) - offset) * multiplier / mv_to_a) *
+              1000.0);
+  Serial.println(((double)(tmp[a1] - (tmp[a0] / 2)) * multiplier / mv_to_a),
+                 16);
   average(&data->battery_voltage, &number_of_measurements,
           (double)tmp[a3] * multiplier);
-  // data->pv_voltage += (tmp[a2] * multiplier) *
-  // (double)pv_voltage_divider_ratio; data->pv_current += (tmp[a1] - (tmp[a0] /
-  // 2)) * multiplier * mv_to_a; data->battery_voltage += tmp[a3] * multiplier;
-
   delete[] tmp;
 }
 
@@ -46,13 +67,6 @@ send_data_t* controller::get_data() {
 
   auto tmp = data;
   data = new send_data_t{0};
-  Serial.println(data->bypassed + String(data->pv_current));
-  number_of_measurements = 0;
-  data->battery_voltage = 0.0;
-  data->pv_current = 0.0;
-  data->pv_voltage = 0.0;
-  data->report_interval = 0;
-  data->bypassed = 0;
   return tmp;
 }
 
@@ -82,10 +96,17 @@ void controller::average(double* avg, size_t* count, double x) {
 }
 void controller::x_recv_data() {
   if (recv == nullptr) return;
+  auto pv = pv_controller::get_instance();
   if (recv->bypass) {
     d->set_bypass_pv(1);
+    if (!pv->get_bypass_status()) {
+      pv->toggle_bypass();
+    }
   } else {
     d->set_bypass_pv(0);
+    if (pv->get_bypass_status()) {
+      pv->toggle_bypass();
+    }
   }
   if (recv->report_interval) {
     d->set_report_interval(recv->report_interval);
