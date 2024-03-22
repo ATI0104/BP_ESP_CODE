@@ -8,16 +8,27 @@ void pv_controller::init() {
   this->bypass_pin = data->get_mosfet_pin();
   this->bypassed = data->get_bypass_pv();
   pinMode(this->bypass_pin, OUTPUT);
-  digitalWrite(this->bypass_pin, this->bypassed);
+  Serial.println("Bypass: " + String(this->bypassed));
+  if (this->bypassed) {
+    digitalWrite(this->bypass_pin, LOW);
+    Serial.println("LOW0");
+  } else {
+    digitalWrite(this->bypass_pin, HIGH);
+    Serial.println("HIGH0");
+  }
 }
 
 uint8_t pv_controller::toggle_bypass() {
   if (this->bypassed) {
     this->bypassed = 0;
+    digitalWrite(this->bypass_pin, HIGH);
+    Serial.println("HIGH");
   } else {
     this->bypassed = 1;
+    digitalWrite(this->bypass_pin, LOW);
+    Serial.println("LOW");
   }
-  digitalWrite(this->bypass_pin, this->bypassed);
+
   return this->bypassed;
 }
 
