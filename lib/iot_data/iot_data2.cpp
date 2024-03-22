@@ -59,8 +59,7 @@ void iot_data2::save_data() {
   File file = SPIFFS.open("/config.json", "w");
 
   JsonDocument doc;
-  Serial.println("Saving data:");
-  Serial.println(to_hex_str(this->devEui, 8)->c_str());
+  Serial.println("Saving data...");
 
   doc["devEUI"] = to_hex_str(this->devEui, 8)->c_str();
   doc["joinEUI"] = to_hex_str(this->joinEui, 8)->c_str();
