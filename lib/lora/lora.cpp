@@ -78,7 +78,17 @@ void Lora::onEvent(void *pUserData, ev_t ev) {
       break;
     case EV_TXCOMPLETE:
       Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-      if (LMIC.txrxFlags & TXRX_ACK) Serial.println(F("Received ack"));
+      if (LMIC.txrxFlags & TXRX_ACK) {
+        Serial.println(F("Received ack"));
+        // Release the semaphore
+        xSemaphoreGiveFromISR(ongoingLoraCommunication, nullptr);
+        instance->data_queue.pop();
+        Serial.println(instance->data_queue.size());
+        // Schedule next transmission
+        os_setTimedCallback(
+            &sendjob, os_getTime() + sec2osticks(instance->report_interval),
+            send_data_clb);
+      }
       if (LMIC.dataLen) {
         Serial.println(F("Received "));
         Serial.println(LMIC.dataLen);
@@ -87,12 +97,6 @@ void Lora::onEvent(void *pUserData, ev_t ev) {
         memcpy(recv, LMIC.frame + LMIC.dataBeg, sizeof(recv_data_t));
         instance->recv_data(recv);
       }
-      // Release the semaphore
-      xSemaphoreGiveFromISR(ongoingLoraCommunication, nullptr);
-      instance->data_queue.pop();
-      os_setTimedCallback(&sendjob,
-                          os_getTime() + sec2osticks(instance->report_interval),
-                          send_data_clb);
       break;
     case EV_LOST_TSYNC:
       Serial.println(F("EV_LOST_TSYNC"));
