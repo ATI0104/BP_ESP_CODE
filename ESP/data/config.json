@@ -1,0 +1,15 @@
+{
+    "devEUI": "",
+    "joinEUI": "",
+    "appkey": "",
+    "ssid": "Solar_Monitor",
+    "pass": "",
+    "sda": 23,
+    "scl": 22,
+    "mosfet": 17,
+    "adc_rdy": 13,
+    "report_interval": 60,
+    "bypass_pv": 0,
+    "current_offset": null,
+    "voltage_divider": 16.518275539
+}
