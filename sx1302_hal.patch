@@ -1,0 +1,25 @@
+From 877061d68beac2486d48fba33eca5f97e904b280 Mon Sep 17 00:00:00 2001
+From: ATI0104 <ATI0104@users.noreply.github.com>
+Date: Sun, 28 Apr 2024 19:25:39 +0200
+Subject: [PATCH] Fix for Waveshare SX1302/SX1303 GPS module
+
+---
+ libloragw/src/loragw_gps.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libloragw/src/loragw_gps.c b/libloragw/src/loragw_gps.c
+index ca9602d..2c702a7 100644
+--- a/libloragw/src/loragw_gps.c
++++ b/libloragw/src/loragw_gps.c
+@@ -535,7 +535,7 @@ enum gps_msg lgw_parse_nmea(const char *serial_buff, int buff_size) {
+         memcpy(parser_buf, serial_buff, buff_size);
+         parser_buf[buff_size] = '\0';
+         nb_fields = str_chop(parser_buf, buff_size, ',', str_index, ARRAY_SIZE(str_index));
+-        if (nb_fields != 13) {
++        if (nb_fields < 13) {
+             DEBUG_MSG("Warning: invalid RMC sentence (number of fields)\n");
+             return IGNORED;
+         }
+-- 
+2.44.0
+

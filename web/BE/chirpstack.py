@@ -86,14 +86,15 @@ class device_keys(Base):
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     nwk_key = db.Column(db.BINARY)
     app_key = db.Column(db.BINARY, default=base64.b64decode("AAAAAAAAAAAAAAAAAAAAAA=="))
-    dev_nonces = db.Column(db.ARRAY(db.Integer), default=[])
+    dev_nonces = db.Column(db.ARRAY(db.Integer), default=lambda: [])
+    join_nonce = db.Column(db.Integer, default=0)
 
 
-def add_device(dev_eui, join_eui, app_key: str, name: str):
+def add_device(dev_eui: bytes, join_eui: bytes, app_key: bytes, name: str):
     try:
         with session() as s:
-            device = session.query(device).filter(device.dev_eui == dev_eui).first()
-            if device:
+            d = s.query(device).filter(device.dev_eui == dev_eui).first()
+            if d:
                 return False
             new_device = device(
                 dev_eui=dev_eui,
@@ -103,7 +104,7 @@ def add_device(dev_eui, join_eui, app_key: str, name: str):
             s.add(new_device)
             new_device_key = device_keys(
                 dev_eui=dev_eui,
-                nwk_key=base64.decode(app_key),
+                nwk_key=app_key,
             )
             s.add(new_device_key)
             s.commit()

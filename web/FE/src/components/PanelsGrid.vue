@@ -8,9 +8,9 @@
 </template>
 
 <script setup lang="ts">
+import Dialog from 'primevue/dialog';
 import Panel from './Panel.vue';
 import { usePanelStore } from '@/stores/panelStore';
-import Dialog from 'primevue/dialog';
 import { computed, ref } from 'vue';
 import PanelDetails from './PanelDetails.vue';
 const panelStore = usePanelStore();

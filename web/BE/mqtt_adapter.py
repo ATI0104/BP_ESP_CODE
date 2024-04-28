@@ -43,13 +43,13 @@ class MQTT:
         self.client.loop_stop()
         self.client.disconnect()
 
-    def send_downlink(self, dev_eui, report_interval, bypass, reset):
+    def send_downlink(self, dev_eui: str, report_interval, bypass, reset):
         topic = f"application/{application_id}/device/{dev_eui}/command/down"
         payload = decoder.encode_data(report_interval, bypass, reset)
         data = {
             "devEui": dev_eui,
             "confirmed": True,
-            "fPort": 10,
+            "fPort": 1,
             "data": payload,
         }
         self.client.publish(topic, json.dumps(data))

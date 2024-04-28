@@ -1,5 +1,7 @@
 import "./assets/main.css";
-import "primeicons/primeicons.css";
+// HACK: No typescript declaration file available: https://github.com/apexcharts/vue3-apexcharts/issues/2
+// eslint-disable-next-line
+// @ts-ignore
 import VueApexCharts from "vue3-apexcharts";
 import { createApp } from "vue";
 import { createPinia } from "pinia";

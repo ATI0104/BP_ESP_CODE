@@ -1,0 +1,83 @@
+diff --git a/chirpstack-concentratord-sx1302/src/config/vendor/waveshare/sx1302_lorawan_gateway_hat.rs b/chirpstack-concentratord-sx1302/src/config/vendor/waveshare/sx1302_lorawan_gateway_hat.rs
+index 0dacca9..1942380 100644
+--- a/chirpstack-concentratord-sx1302/src/config/vendor/waveshare/sx1302_lorawan_gateway_hat.rs
++++ b/chirpstack-concentratord-sx1302/src/config/vendor/waveshare/sx1302_lorawan_gateway_hat.rs
+@@ -161,7 +161,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+         ],
+         _ => return Err(anyhow!("Region not supported: {}", region)),
+     };
+-
++    
++    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+ 
+     Ok(Configuration {
+@@ -206,7 +207,15 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+                 tx_gain_table: vec![],
+             },
+         ],
+-        gps: Gps::None,
++        gps: match gps {
++            true => Gps::TtyPath(
++                conf.gateway
++                    .gnss_dev_path
++                    .clone()
++                    .unwrap_or("/dev/ttyAMA0".to_string()),
++            ),
++            false => Gps::None,
++        },
+         com_type: ComType::Spi,
+         com_path: conf
+             .gateway
+diff --git a/cross/Dockerfile.aarch64-unknown-linux-musl b/cross/Dockerfile.aarch64-unknown-linux-musl
+index d40abed..da05076 100644
+--- a/cross/Dockerfile.aarch64-unknown-linux-musl
++++ b/cross/Dockerfile.aarch64-unknown-linux-musl
+@@ -28,7 +28,7 @@ RUN echo "Building sx1301 HAL" && \
+ 
+ RUN echo "Building sx1302 HAL" && \
+     cd /hal && \
+-    git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
++    git clone https://github.com/ATI0104/sx1302_hal.git && \
+     cd /hal/sx1302_hal && \
+     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
+     ln -s /hal/sx1302_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1302 && \
+diff --git a/cross/Dockerfile.armv5te-unknown-linux-musleabi b/cross/Dockerfile.armv5te-unknown-linux-musleabi
+index 2e695b8..9ffeccf 100644
+--- a/cross/Dockerfile.armv5te-unknown-linux-musleabi
++++ b/cross/Dockerfile.armv5te-unknown-linux-musleabi
+@@ -28,7 +28,7 @@ RUN echo "Building sx1301 HAL" && \
+ 
+ RUN echo "Building sx1302 HAL" && \
+     cd /hal && \
+-    git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
++    git clone https://github.com/ATI0104/sx1302_hal.git && \
+     cd /hal/sx1302_hal && \
+     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
+     ln -s /hal/sx1302_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1302 && \
+diff --git a/cross/Dockerfile.armv7-unknown-linux-musleabihf b/cross/Dockerfile.armv7-unknown-linux-musleabihf
+index 7f08fb3..549ec8c 100644
+--- a/cross/Dockerfile.armv7-unknown-linux-musleabihf
++++ b/cross/Dockerfile.armv7-unknown-linux-musleabihf
+@@ -28,7 +28,7 @@ RUN echo "Building sx1301 HAL" && \
+ 
+ RUN echo "Building sx1302 HAL" && \
+     cd /hal && \
+-    git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
++    git clone https://github.com/ATI0104/sx1302_hal.git && \
+     cd /hal/sx1302_hal && \
+     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
+     ln -s /hal/sx1302_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1302 && \
+diff --git a/cross/Dockerfile.x86_64-unknown-linux-musl b/cross/Dockerfile.x86_64-unknown-linux-musl
+index 5472fac..cd54b2b 100644
+--- a/cross/Dockerfile.x86_64-unknown-linux-musl
++++ b/cross/Dockerfile.x86_64-unknown-linux-musl
+@@ -29,7 +29,7 @@ RUN echo "Building sx1301 HAL" && \
+ 
+ RUN echo "Building sx1302 HAL" && \
+     cd /hal && \
+-    git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
++    git clone https://github.com/ATI0104/sx1302_hal.git && \
+     cd /hal/sx1302_hal && \
+     sed -i "s/CFLAGS\(.*\)/CFLAGS\1\ -fPIE/" libloragw/Makefile && \
+     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \

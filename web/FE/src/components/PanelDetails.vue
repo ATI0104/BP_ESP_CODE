@@ -2,39 +2,55 @@
     <div class="panel-details">
         <div class="header">
             <h2 v-if="panel">{{ panel.name }}</h2>
+            <Button @click="() => { if (show_data) show_data = false; else show_data = true; }">
+                <i v-if="show_data" class="pi pi-wrench"></i>
+                <i v-if="!show_data" class="pi pi-database"></i>
+            </Button>
+
         </div>
-        <div class="toggle-options">
-            <SelectButton :options="options" v-model="selectedDuration" @change="onDurationChange" />
-            <div v-if="isCustomDuration" class="date-pickers">
-                <Calendar placeholder="Start Date" v-model="startDate" />
-                <Calendar placeholder="End Date" v-model="endDate" />
+        <div v-if="show_data">
+            <div class="toggle-options">
+                <SelectButton :options="options" v-model="selectedDuration" @change="onDurationChange" />
+                <div v-if="isCustomDuration" class="date-pickers">
+                    <Calendar @date-select="onDurationChange" placeholder="Start Date" v-model="startDate" />
+                    <Calendar @date-select="onDurationChange" placeholder="End Date" v-model="endDate" />
+                </div>
+            </div>
+            <div id="chart">
+                <apexchart type="line" :options="chartOptions" :series="chartSeries" height="100%" />
             </div>
         </div>
-        <div id="chart">
-            <apexchart type="line" :options="chartOptions" :series="chartSeries" />
+        <div v-if="!show_data">
+            <SendDownlink :panel="panel" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import Button from 'primevue/button';
 import { ref, watch, onMounted } from 'vue';
 import SelectButton from 'primevue/selectbutton';
 import Calendar from 'primevue/calendar';
+import SendDownlink from '@/components/SendDownlink.vue';
 const props = defineProps({
     panel: Object
 });
 const options = [
     '1 year', '6 months', '1 month', '24 hours', '1 hour', 'custom'
 ];
-
-const selectedDuration = ref('1m');
+const previousDuration = ref('1 month');
+const selectedDuration = ref("");
 const isCustomDuration = ref(false);
 const startDate = ref(null);
 const endDate = ref(null);
+const show_data = ref(true);
 onMounted(() => {
     onDurationChange();
 });
 function onDurationChange() {
+    if (!selectedDuration.value) {
+        selectedDuration.value = previousDuration.value;
+    }
     // Load data for the selected duration or date range
     const now = new Date().getTime();
     let start;
@@ -44,6 +60,7 @@ function onDurationChange() {
             break;
         case '6 month':
             start = new Date(now - 15768000000); // 182.5 days
+
             break;
         case '1 month':
             start = new Date(now - 2628000000); // 30.44 days
@@ -63,6 +80,7 @@ function onDurationChange() {
             return;
     }
     if (start) {
+        previousDuration.value = selectedDuration.value;
         calculatePower(start, new Date()); // Calculating up to the current time
     }
 }
@@ -78,7 +96,8 @@ function calculatePower(startDate: Date, endDate: Date) {
     const arranged_data = panelData?.sort((a: { created_at: string | number | Date; }, b: { created_at: string | number | Date; }) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     arranged_data?.forEach((d: { created_at: string | number | Date; pv_voltage: number; pv_current: number; }) => {
         const createdTime = new Date(d.created_at).getTime();
-        const Power = d.pv_voltage * d.pv_current;
+        var Power = d.pv_voltage * d.pv_current;
+        Power = parseFloat(Power.toFixed(2));
         chartSeries.value[0].data.push([createdTime, Power]);
     });
 
@@ -89,7 +108,6 @@ function calculatePower(startDate: Date, endDate: Date) {
 const chartOptions = ref({
     chart: {
         type: 'line',
-        height: 350,
         zoom: {
             enabled: true,
             type: 'x',
@@ -105,10 +123,6 @@ const chartOptions = ref({
     stroke: {
         curve: 'smooth'
     },
-    title: {
-        text: '',
-        align: 'left'
-    },
     markers: {
         size: 1
     },
@@ -122,8 +136,7 @@ const chartOptions = ref({
     }
 });
 const chartSeries = ref([{
-    name: "Power",
-    unit: "W",
+    name: "Power(W)",
     data: [] as number[][]
 }]);
 
@@ -142,7 +155,6 @@ watch(selectedDuration, (newVal) => {
 
 
 .toggle-options {
-    margin-top: 20px;
     display: flex;
 }
 
@@ -153,7 +165,11 @@ watch(selectedDuration, (newVal) => {
 }
 
 .panel-details {
-    padding: 20px;
-    width: 60vw;
+    width: 85vw;
+    height: 75vh;
+}
+
+#chart {
+    height: 65vh;
 }
 </style>

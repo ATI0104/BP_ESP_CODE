@@ -23,3 +23,9 @@ export interface send_data {
   bypass: boolean;
   reset: boolean;
 }
+
+export interface data_from_esp {
+  deveui: string | null;
+  appeui: string | null;
+  appkey: string | null;
+}

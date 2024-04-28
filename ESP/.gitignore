@@ -3,7 +3,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-web/BE/venv/*
-web/BE/__pycache__/*
-web/FE/node_modules/*
-web/FE/dist/*
+docs/*
+core_dir/*
+.vscode/*
