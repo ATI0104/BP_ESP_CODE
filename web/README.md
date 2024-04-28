@@ -33,5 +33,5 @@ Configuration:
 
 - Install podman on the Raspberry Pi
 - Copy this directory to the Rapsberry Pi
-- Run `bash ./create_service.sh` to install the application as a service
+- Run `sh ./create_service.sh` to install the application as a service
 - Run `/etc/init.d/webserver start`
