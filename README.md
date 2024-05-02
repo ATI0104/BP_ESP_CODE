@@ -16,20 +16,17 @@ Requirements:
 - PlatformIO
 - ESP32 microcontroller with various components connected based on the schematic
 
-To deploy the ESP32 firmware, open the ESP directory as a PlatformIO project compile and upload the firmware to the ESP32.
+To deploy the ESP32 firmware, open the ESP directory as a PlatformIO project and compile and upload it to the ESP32.
 
 ### WEB
 
 Requirements:
-
-- Podman
-- PostgreSQL database
-- MQTT broker
+- Rapsberry Pi
 - ChirpStack Gateway OS
 
 Please read the README.md file in the web directory for more information.
 
-## Chirpstack Gateway OS
+## Installing and configuring Chirpstack Gateway OS
 
 Some configuration is needed for the ChirpStack Gateway OS to work with the ESP32 microcontroller. I couldn't find a way to automate this process, so this needs to be done manually.
 
@@ -75,7 +72,7 @@ Some configuration is needed for the ChirpStack Gateway OS to work with the ESP3
 
 ### Patches
 
-As mentioned in my thesis, I came across an old bug with the Waveshare SX1303 Gateway hat the 2 patch files can be used to compile a modified version of ChirpStack Concetratord that fixes the GPS synchronization issue. The patch files are located in the patches' directory.
+As mentioned in my thesis, I came across an old bug with the Waveshare SX1303 Gateway hat, the 2 patch files can be used to compile a modified version of ChirpStack Concetratord that fixes the GPS synchronization issue. The patch files are located in the patches directory.
 
 The concetratord.patch needs to be applied to the ChirpStack Concentratord source code. [Can be found here](https://github.com/chirpstack/chirpstack-concentratord)
 
@@ -83,4 +80,4 @@ The sx1302_hal.patch can be optionally applied to the SX1302_hal source code. Cu
 
 This fixes the GPS issues with the Waveshare SX1303 Gateway hat (maybe even more gateways).
 
-I'm also including the patched version of the ChirpStack Concentratord in the patched_binaries directory.
+I'm also including the patched version of ChirpStack Concentratord in the patches/patched_binaries directory.

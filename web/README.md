@@ -4,7 +4,7 @@ This folder contains the files required for the web application.
 The BE directory contains the backend code and the FE directory contains the frontend code.
 I'm including a Dockerfile and 2 run scripts which speeds up deploying and running the application.
 
-There are 2 ways to deploy this software:
+There are 2 ways to launch this software:
 
 1. Using Podman [Recommended]
 
@@ -17,7 +17,7 @@ There are 2 ways to deploy this software:
   - bash ./init.sh
   - source venv/bin/activate
   - python3 web.py
-  - Now the backend is running
+  - The backend is running on the configured port
 - Inside the FE directory, run the following commands:
   - npm install
   - npm run dev or npm run build - npm run dev launches the application in debug mode, which means that you can access it on http://localhost:5173. npm run build compiles the application and you can find the files in the /dist directory. You need to serve these files using a web server like Nginx.
@@ -31,7 +31,9 @@ Configuration:
 
 ## Deploying on ChirpStack Gateway OS
 
-- Install podman on the Raspberry Pi
-- Copy this directory to the Rapsberry Pi
-- Run `sh ./create_service.sh` to install the application as a service
+- Install podman by running:
+  - `opkg update`
+  - `opkg install podman`
+- Copy this directory
+- Run `sh ./create_service.sh` to create the service file
 - Run `/etc/init.d/webserver start`
