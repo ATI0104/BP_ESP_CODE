@@ -21,7 +21,7 @@ To deploy the ESP32 firmware, open the ESP directory as a PlatformIO project and
 ### WEB
 
 Requirements:
-- Rapsberry Pi
+- Rapsberry Pi with at least a 16GB sd card
 - ChirpStack Gateway OS
 
 Please read the README.md file in the web directory for more information.
@@ -30,7 +30,7 @@ Please read the README.md file in the web directory for more information.
 
 Some configuration is needed for the ChirpStack Gateway OS to work with the ESP32 microcontroller. I couldn't find a way to automate this process, so this needs to be done manually.
 
-- Download the ChirpStack Gateway OS Full image from the [ChirpStack website](https://www.chirpstack.io/docs/chirpstack-gateway-os/install/raspberry-pi.html).
+- Use the included image file or download the ChirpStack Gateway OS Full image from the [ChirpStack website](https://www.chirpstack.io/docs/chirpstack-gateway-os/install/raspberry-pi.html) and use the patches bellow.
 - Using Balena etcher or it's alternative, flash the image to an SD card.
 - Insert the SD card into the Raspberry Pi and boot it up.
 - Obtain the IP address of the Raspberry Pi.
@@ -47,9 +47,9 @@ Some configuration is needed for the ChirpStack Gateway OS to work with the ESP3
 - Inside the Global configuration:
   - Set the Enabled chipset to SX1302/SX1303
   - Press Save & Apply
-- Reboot the Pi by going into System → Reboot
-- After the Pi has rebooted open the same web interface again and in the bottom right corner you should see the Gateway ID, save this value somewhere.
-- Click on the Chirpstack image, this should open up the ChirpStack web interface.
+- After Applying the changes in the bottom right corner you should see the Gateway ID, save this value somewhere.
+- From the sidebar select application and click on the Chirpstack image, this should open up the ChirpStack web interface.
+- The default login and password is 'admin'
 - In the left sidebar select Gateways and click on Add gateway.
   - Fill out the form. The Gateway ID should be the one you saved earlier. Don't worry about the location it will be updated later.
 - In the left sidebar select Device Profiles
@@ -69,6 +69,7 @@ Some configuration is needed for the ChirpStack Gateway OS to work with the ESP3
     - `mv chirpstack-concentratord-sx1302 /usr/bin/chirpstack-concentratord-sx1302`
 - reboot the Raspberry Pi
 - After the Raspberry Pi has rebooted, open the ChirpStack web interface again and after a few minutes you should see that the gateway is in the right location, meaning that the GPS is now working.
+- You are done
 
 ### Patches
 
